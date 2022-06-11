@@ -1,17 +1,15 @@
 {
-  "name": "com.tratteo.validatox",
+  "name": "com.siamango.validatox",
   "version": "1.0.0",
   "displayName": "Validatox",
-  "description": "Reference validation made easy",
+  "description": "Unity reference validation made easy.",
   "keywords": [
     "plugin",
     "utils"
   ],
   "author": {
-    "name": "Tratteo",
-    "url": "https://github.com/tratteo/"
+    "name": "Siamango",
+    "url": "https://github.com/Siamango/"
   },
-  "samples": [],
-  "dependencies": {
-  }
+  "samples": []
 }

@@ -12,9 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7ee9e62637cc2b54bbae11b1d1a815ed, type: 3}
   m_Name: ox_guard_validator
   m_EditorClassIdentifier: 
-  showResults: 0
+  showResults: 1
   latestResultsStrings: []
-  lastValidationTime: 
+  lastValidationTime: 11/06/2022 19:52:26
   validateAssets: 1
-  allScenes: 0
+  allScenes: 1
   scenes: []
