@@ -1,0 +1,17 @@
+{
+  "name": "com.tratteo.validatox",
+  "version": "1.0.0",
+  "displayName": "Validatox",
+  "description": "Reference validation made easy",
+  "keywords": [
+    "plugin",
+    "utils"
+  ],
+  "author": {
+    "name": "Tratteo",
+    "url": "https://github.com/tratteo/"
+  },
+  "samples": [],
+  "dependencies": {
+  }
+}
