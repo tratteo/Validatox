@@ -8,15 +8,15 @@ namespace Validatox.Editor
 {
     public static class Validatox
     {
-        public const string PackagePath = "Packages/com.tratteo.validatox";
-        public const string PackageEditorPath = "Packages/com.tratteo.validatox/Editor";
+        public const string PackagePath = "Packages/com.siamango.validatox";
+        public const string PackageEditorPath = "Packages/com.siamango.validatox/Editor";
 
         /// <summary>
-        ///   Validate all <see cref="ValidationGroup"/> in the <i> Asset </i> folder and sub-folders
+        ///   Validate all <see cref="GroupValidator"/> in the <i> Asset </i> folder and sub-folders
         /// </summary>
         public static bool ValidateAllGroups()
         {
-            static void Progress(IValidable.ValidationProgress p) => EditorUtility.DisplayProgressBar(p.phase, p.description, p.value);
+            static void Progress(ValidationProgress p) => EditorUtility.DisplayProgressBar(p.Phase, p.Description, p.ProgressValue);
             var res = ValidateAllGroups(Progress);
             EditorUtility.ClearProgressBar();
             return res;
@@ -25,25 +25,25 @@ namespace Validatox.Editor
         /// <summary>
         ///   <inheritdoc cref="ValidateAllGroups"/>
         /// </summary>
-        public static bool ValidateAllGroups(Action<IValidable.ValidationProgress> progress)
+        public static bool ValidateAllGroups(Action<ValidationProgress> progress)
         {
-            var progressVal = new IValidable.ValidationProgress(nameof(Validatox), "Retrieving groups...", 0);
+            var progressVal = new ValidationProgress(nameof(Validatox), "Retrieving groups...", 0);
             progress?.Invoke(progressVal);
-            var objs = ValidatoxTools.GetAllBehavioursInAsset<ValidationGroup>();
+            var objs = ValidatoxTools.GetAllBehavioursInAsset<GroupValidator>();
             var failure = false;
             for (var i = 0; i < objs.Count; i++)
             {
                 var o = objs[i];
                 var res = o.Validate(progress);
-                if (res.Count <= 0)
+                if (res.Successful)
                 {
                     Debug.Log($"{o.name} -> <color=#55d971>Validation successful! <b>:D</b></color>", o);
                 }
                 else
                 {
                     failure = true;
-                    var builder = new StringBuilder($"{o.name} -> <color=#ed4e4e>Validation failed with {res.Count} errors</color>\nClick for more info\n");
-                    foreach (var r in res)
+                    var builder = new StringBuilder($"{o.name} -> <color=#ed4e4e>Validation failed with {res.Failures.Count} errors</color>\nClick for more info\n");
+                    foreach (var r in res.Failures)
                     {
                         builder.Append(r.ToString() + "\n");
                     }
@@ -60,7 +60,7 @@ namespace Validatox.Editor
         /// </summary>
         public static bool ValidateGuarded()
         {
-            static void Progress(IValidable.ValidationProgress p) => EditorUtility.DisplayProgressBar(p.phase, p.description, p.value);
+            static void Progress(ValidationProgress p) => EditorUtility.DisplayProgressBar(p.Phase, p.Description, p.ProgressValue);
             var res = ValidateGuarded(Progress);
             EditorUtility.ClearProgressBar();
             return res;
@@ -69,7 +69,7 @@ namespace Validatox.Editor
         /// <summary>
         ///   <inheritdoc cref="ValidateGuarded"/>
         /// </summary>
-        public static bool ValidateGuarded(Action<IValidable.ValidationProgress> progress)
+        public static bool ValidateGuarded(Action<ValidationProgress> progress)
         {
             var res = ValidatoxTools.GetAllBehavioursInAsset<GuardValidator>($"Editor");
             if (res.Count > 0)
@@ -88,16 +88,16 @@ namespace Validatox.Editor
             var validator = res[0];
             var failure = false;
             var validatorName = validator.name;
-            var failures = validator.Validate(progress);
-            if (failures.Count <= 0)
+            var result = validator.Validate(progress);
+            if (result.Successful)
             {
                 Debug.Log($"{validatorName} -> <color=#55d971>Validation successful! <b>:D</b></color>");
             }
             else
             {
                 failure = true;
-                var builder = new StringBuilder($"{validatorName} -> <color=#ed4e4e>Validation failed with {failures.Count} errors</color>\nClick for more info\n");
-                foreach (var r in failures)
+                var builder = new StringBuilder($"{validatorName} -> <color=#ed4e4e>Validation failed with {result.Failures.Count} errors</color>\nClick for more info\n");
+                foreach (var r in result.Failures)
                 {
                     builder.Append(r.ToString() + "\n");
                 }
@@ -113,7 +113,7 @@ namespace Validatox.Editor
         /// <returns> </returns>
         public static bool Validate()
         {
-            static void Progress(IValidable.ValidationProgress p) => EditorUtility.DisplayProgressBar(p.phase, p.description, p.value);
+            static void Progress(ValidationProgress p) => EditorUtility.DisplayProgressBar(p.Phase, p.Description, p.ProgressValue);
             var groups = ValidateAllGroups(Progress);
             var guardeds = ValidateGuarded(Progress);
             EditorUtility.ClearProgressBar();

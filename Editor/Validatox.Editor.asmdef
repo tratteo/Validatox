@@ -1,6 +1,6 @@
 {
     "name": "Validatox.Editor",
-    "rootNamespace": "",
+    "rootNamespace": "Validatox.Editor",
     "references": [
         "GUID:18e61a062f3d2eb439c24a86ec36329c"
     ],

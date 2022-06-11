@@ -1,4 +1,5 @@
 ﻿using UnityEditor;
+using UnityEngine;
 
 namespace Validatox.Editor
 {
@@ -15,6 +16,12 @@ namespace Validatox.Editor
         {
             Validatox.ValidateAllGroups();
             Validatox.ValidateGuarded();
+        }
+
+        [MenuItem("Validatox/Credits", false, 128)]
+        internal static void Credits()
+        {
+            EditorWindow.GetWindow(typeof(CreditsEditorWindow)).titleContent = new GUIContent("Validatox");
         }
     }
 }

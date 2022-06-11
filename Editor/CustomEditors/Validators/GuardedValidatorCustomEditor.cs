@@ -5,7 +5,7 @@ using Validatox.Editor.Validators;
 namespace Validatox.Editor
 {
     [CustomEditor(typeof(GuardValidator))]
-    internal class GuardedValidatorCustomEditor : ValidatorCustomEditor
+    public class GuardedValidatorCustomEditor : ValidatorCustomEditor
     {
         private GUIStyle textStyle;
 
@@ -20,6 +20,7 @@ namespace Validatox.Editor
             {
                 this.PropertyField("scenes", "Scenes", "Scenes to validate");
             }
+            base.DrawProperties();
         }
 
         protected override void OnEnable()

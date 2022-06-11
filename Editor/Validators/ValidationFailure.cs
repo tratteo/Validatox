@@ -1,23 +1,31 @@
-﻿using System.Text;
+﻿using System.Linq;
+using System.Text;
+using UnityEngine;
 
 namespace Validatox.Editor.Validators
 {
-    public class ValidatorFailure
+    [System.Serializable]
+    public class ValidationFailure
     {
-        public Validator Validator { get; private set; }
+        [SerializeField] private Validator validator;
+        [SerializeField] private int code;
+        [SerializeField] private string reason;
+        [SerializeField] private string[] causersNames;
 
-        public int Code { get; private set; }
+        public Validator Validator => validator;
 
-        public string Reason { get; private set; }
+        public int Code => code;
 
-        public object[] Causers { get; private set; }
+        public string Reason => reason;
 
-        private ValidatorFailure(Validator validator)
+        public string[] Causers => causersNames;
+
+        private ValidationFailure(Validator validator)
         {
-            Validator = validator;
-            Code = 0;
-            Reason = string.Empty;
-            Causers = new object[0];
+            this.validator = validator;
+            code = 0;
+            reason = string.Empty;
+            causersNames = new string[0];
         }
 
         public static ValidatorFailureBuilder Of(Validator validator) => new ValidatorFailureBuilder(validator);
@@ -41,34 +49,34 @@ namespace Validatox.Editor.Validators
 
         public class ValidatorFailureBuilder
         {
-            private readonly ValidatorFailure failure;
+            private readonly ValidationFailure failure;
 
             public ValidatorFailureBuilder(Validator validator)
             {
-                failure = new ValidatorFailure(validator);
+                failure = new ValidationFailure(validator);
             }
 
-            public static implicit operator ValidatorFailure(ValidatorFailureBuilder builder) => builder.Build();
+            public static implicit operator ValidationFailure(ValidatorFailureBuilder builder) => builder.Build();
 
             public ValidatorFailureBuilder Reason(string reason)
             {
-                failure.Reason = reason;
+                failure.reason = reason;
                 return this;
             }
 
             public ValidatorFailureBuilder Code(int code)
             {
-                failure.Code = code;
+                failure.code = code;
                 return this;
             }
 
             public ValidatorFailureBuilder By(params object[] causers)
             {
-                failure.Causers = causers;
+                failure.causersNames = (from c in causers select c.ToString()).ToArray();
                 return this;
             }
 
-            public ValidatorFailure Build() => failure;
+            public ValidationFailure Build() => failure;
         }
     }
 }
