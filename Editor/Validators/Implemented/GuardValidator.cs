@@ -14,13 +14,14 @@ namespace Validatox.Editor.Validators
     public sealed class GuardValidator : Validator
     {
         [SerializeField] private bool validateAssets = true;
+
         [SerializeField] private bool allScenes = false;
+
         [SerializeField] private SceneReference[] scenes;
 
         public override void Validate(List<ValidationFailure> failures, Action<ValidationProgress> progress = null)
         {
             var assets = new List<UnityEngine.Object>();
-
             var progressVal = new ValidationProgress(nameof(GuardValidator), "Retrieving assets...");
             progress?.Invoke(progressVal);
             if (validateAssets) assets.AddRange(ValidatoxTools.GetUnityObjectsInAssets().ToArray());
@@ -65,6 +66,34 @@ namespace Validatox.Editor.Validators
                 }
                 Log($"Validated {(allScenes ? "all" : scenesPaths.Count)} scenes");
             }
+        }
+
+        protected override void SerializeDirty(Validator dirty)
+        {
+            dirty = ExecuteMutex.isExecuting ? AssetDatabase.LoadAssetAtPath<Validator>(ExecuteMutex.executingAssetPath) : dirty;
+            base.SerializeDirty(dirty);
+        }
+
+        protected override bool CanValidate()
+        {
+            if (ExecuteMutex.isExecuting)
+            {
+                Log("Cannot run multiple guarded validators at once!", LogType.Warning);
+                return false;
+            }
+            return true;
+        }
+
+        protected override void ValidationStart()
+        {
+            ExecuteMutex.isExecuting = true;
+            ExecuteMutex.executingAssetPath = AssetDatabase.GetAssetPath(this);
+        }
+
+        protected override void ValidationEnd()
+        {
+            ExecuteMutex.isExecuting = false;
+            ExecuteMutex.executingAssetPath = string.Empty;
         }
 
         private void Log(string message, LogType type = LogType.Log)
@@ -131,6 +160,12 @@ namespace Validatox.Editor.Validators
                 }
             }
             return failures;
+        }
+
+        private static class ExecuteMutex
+        {
+            public static string executingAssetPath;
+            public static bool isExecuting;
         }
     }
 }

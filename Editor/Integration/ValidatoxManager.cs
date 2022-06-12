@@ -6,7 +6,7 @@ using Validatox.Editor.Validators;
 
 namespace Validatox.Editor
 {
-    public static class Validatox
+    public static class ValidatoxManager
     {
         public const string PackagePath = "Packages/com.siamango.validatox";
         public const string PackageEditorPath = "Packages/com.siamango.validatox/Editor";
@@ -27,7 +27,7 @@ namespace Validatox.Editor
         /// </summary>
         public static bool ValidateAllGroups(Action<ValidationProgress> progress)
         {
-            var progressVal = new ValidationProgress(nameof(Validatox), "Retrieving groups...", 0);
+            var progressVal = new ValidationProgress(nameof(ValidatoxManager), "Retrieving groups...", 0);
             progress?.Invoke(progressVal);
             var objs = ValidatoxTools.GetAllBehavioursInAsset<GroupValidator>();
             var failure = false;

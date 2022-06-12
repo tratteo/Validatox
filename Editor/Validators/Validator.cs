@@ -28,19 +28,45 @@ namespace Validatox.Editor.Validators
         {
             result = null;
             hasResult = false;
-            EditorUtility.SetDirty(this);
+            SerializeDirty(this);
         }
 
         public ValidationResult Validate(Action<ValidationProgress> progress = null)
         {
             var res = new List<ValidationFailure>();
+            if (!CanValidate()) return new ValidationResult(res, DateTime.Now);
+            ValidationStart();
             Validate(res, progress);
-            result = new ValidationResult(res, DateTime.Now);
             hasResult = true;
-            EditorUtility.SetDirty(this);
+            SerializeDirty(this);
+            ValidationEnd();
+            result = new ValidationResult(res, DateTime.Now);
             return result;
         }
 
         public abstract void Validate(List<ValidationFailure> failures, Action<ValidationProgress> progress = null);
+
+        /// <summary>
+        ///   Called when the validation process is started
+        /// </summary>
+        protected virtual void ValidationStart()
+        {
+        }
+
+        /// <summary>
+        /// </summary>
+        /// <returns> Whether the <see cref="Validator"/> can run the validation process </returns>
+        protected virtual bool CanValidate() => true;
+
+        /// <summary>
+        ///   Called when the validation process is ended
+        /// </summary>
+        protected virtual void ValidationEnd()
+        { }
+
+        /// <summary>
+        ///   Called when the <see cref="Validator"/> needs to be serialized
+        /// </summary>
+        protected virtual void SerializeDirty(Validator dirty) => EditorUtility.SetDirty(dirty);
     }
 }
