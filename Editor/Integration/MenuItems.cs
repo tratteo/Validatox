@@ -11,7 +11,7 @@ namespace Validatox.Editor
         [MenuItem("Validatox/Validate guardeds", false, 8)]
         internal static void ValidateGuardeds() => ValidatoxManager.ValidateGuarded();
 
-        [MenuItem("Validatox/Validate", false, 0)]
+        [MenuItem("Validatox/Validate", false, 4)]
         internal static void Validate()
         {
             ValidatoxManager.ValidateAllGroups();
@@ -22,6 +22,12 @@ namespace Validatox.Editor
         internal static void Credits()
         {
             EditorWindow.GetWindow(typeof(CreditsEditorWindow)).titleContent = new GUIContent("Validatox");
+        }
+
+        [MenuItem("Validatox/Hub", false, 0)]
+        internal static void Hub()
+        {
+            EditorWindow.GetWindow(typeof(HubEditorWindow)).titleContent = new GUIContent("Validatox Hub");
         }
     }
 }

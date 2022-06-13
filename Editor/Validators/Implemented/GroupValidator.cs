@@ -14,6 +14,8 @@ namespace Validatox.Editor.Validators
         [ExcludeSubtypes(typeof(GroupValidator), ExcludeSubclasses = true)]
         [SerializeField] private List<Validator> validators;
 
+        public IReadOnlyCollection<Validator> GetValidators() => validators is null ? new List<Validator>() : validators.FindAll(v => v);
+
         public override void Validate(List<ValidationFailure> failures, Action<ValidationProgress> progress = null)
         {
             if (validators is null || validators.Count < 0) return;

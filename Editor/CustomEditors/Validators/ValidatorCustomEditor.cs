@@ -11,6 +11,7 @@ namespace Validatox.Editor
         private Vector2 scrollPos;
         private bool resultsFoldout;
         private GUIStyle labelStyle;
+        private GUIStyle infoStyle;
 
         public override void OnInspectorGUI()
         {
@@ -38,18 +39,24 @@ namespace Validatox.Editor
             }
             EditorGUI.EndDisabledGroup();
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space(10);
+            EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, 2), new Color(0.5F, 0.5F, 0.5F, 1));
+            EditorGUILayout.Space(10);
+            var content = hasResult ? !result.Successful ?
+                EditorGUIUtility.TrTextContentWithIcon($" Validation completed with {result.Failures.Count} errors", "winbtn_mac_close@2x") :
+                EditorGUIUtility.TrTextContentWithIcon($" Validation completed with {result.Failures.Count} errors", "winbtn_mac_max@2x") : EditorGUIUtility.TrIconContent("winbtn_mac_min");
+
+            EditorGUILayout.LabelField(content, labelStyle);
             if (hasResult)
             {
-                EditorGUILayout.Space(10);
-                var rect = EditorGUILayout.GetControlRect(false, 2);
-                EditorGUI.DrawRect(rect, new Color(0.5F, 0.5F, 0.5F, 1));
-                EditorGUILayout.Space(10);
-                var content = !result.Successful ?
-                    EditorGUIUtility.TrTextContentWithIcon($" Validation completed with {result.Failures.Count} errors", "winbtn_mac_close@2x") :
-                    EditorGUIUtility.TrTextContentWithIcon($" Validation completed with {result.Failures.Count} errors", "winbtn_mac_max@2x");
-
-                EditorGUILayout.LabelField(content, labelStyle);
                 EditorGUILayout.LabelField(EditorGUIUtility.TrTextContentWithIcon($" {result.Time}", "TestStopwatch"), labelStyle);
+
+                if (validator.DirtyResult)
+                {
+                    GUILayout.Label(EditorGUIUtility.TrTextContentWithIcon(" Asset may have changed since last validation", "d_console.warnicon.sml"), infoStyle, GUILayout.ExpandWidth(false));
+                    GUILayout.Space(5);
+                }
 
                 EditorGUILayout.Space(10);
                 resultsFoldout = EditorGUILayout.Foldout(resultsFoldout, "Failures");
@@ -73,9 +80,17 @@ namespace Validatox.Editor
             labelStyle = new GUIStyle()
             {
                 wordWrap = true,
-                imagePosition = ImagePosition.ImageLeft
+                imagePosition = ImagePosition.ImageLeft,
+                margin = new RectOffset(0, 0, 5, 5),
             };
             labelStyle.normal.textColor = Color.white;
+
+            infoStyle = new GUIStyle()
+            {
+                fontStyle = FontStyle.Italic,
+                fontSize = 10
+            };
+            infoStyle.normal.textColor = new Color(0.65F, 0.65F, 0.65F, 1);
         }
 
         private void EditorProgressReport(ValidationProgress progress) => EditorUtility.DisplayProgressBar(progress.Phase, progress.Description, progress.ProgressValue);

@@ -47,6 +47,14 @@ namespace Validatox.Editor
         }
 
         /// <summary>
+        ///   <inheritdoc cref="GetAllBehaviours{T}(Type[], UnityEngine.Object[])"/>
+        /// </summary>
+        /// <typeparam name="T"> </typeparam>
+        /// <param name="objs"> </param>
+        /// <returns> </returns>
+        public static List<T> GetAllBehaviours<T>(params UnityEngine.Object[] objs) where T : class => GetAllBehaviours<T>(new Type[0], objs);
+
+        /// <summary>
         ///   For each object:
         ///   <list>
         ///     <item>
@@ -60,13 +68,15 @@ namespace Validatox.Editor
         /// <typeparam name="T"> </typeparam>
         /// <param name="objs"> </param>
         /// <returns> </returns>
-        public static List<T> GetAllBehaviours<T>(params UnityEngine.Object[] objs) where T : class
+        public static List<T> GetAllBehaviours<T>(Type[] exclusions, params UnityEngine.Object[] objs) where T : class
         {
             var behaviours = new List<T>();
+            if (exclusions.Contains(typeof(T))) return behaviours;
             foreach (var obj in objs)
             {
                 if (typeof(T).IsSubclassOf(typeof(ScriptableObject)))
                 {
+                    if (exclusions.Contains(obj.GetType())) continue;
                     if (typeof(T).Equals(typeof(UnityEngine.Object)))
                     {
                         behaviours.Add(obj as T);
@@ -101,7 +111,7 @@ namespace Validatox.Editor
         /// <typeparam name="T"> </typeparam>
         /// <param name="root"> </param>
         /// <returns> </returns>
-        public static List<T> GetAllBehavioursAtPath<T>(string path) where T : UnityEngine.Object => GetAllBehaviours<T>(GetUnityObjectsAtPath(path).ToArray());
+        public static List<T> GetAllBehavioursAtPath<T>(string path, params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(exclusions, GetUnityObjectsAtPath(path).ToArray());
 
         /// <summary>
         ///   Applied to all <see cref="UnityEngine."/> in the <i> Asset </i> folder. <inheritdoc cref="Gib.GetAllBehaviours{T}(UnityEngine.Object[])"/>
@@ -109,7 +119,7 @@ namespace Validatox.Editor
         /// <typeparam name="T"> </typeparam>
         /// <param name="root"> </param>
         /// <returns> </returns>
-        public static List<T> GetAllBehavioursInAsset<T>(string root = "") where T : UnityEngine.Object => GetAllBehaviours<T>(GetUnityObjectsInAssets(root).ToArray());
+        public static List<T> GetAllBehavioursInAsset<T>(string root = "", params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(exclusions, GetUnityObjectsInAssets(root).ToArray());
 
         /// <summary>
         ///   Execute an <see cref="Action"/> on all the <see cref="GameObject"/> in the specified scene

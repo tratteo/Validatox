@@ -12,6 +12,9 @@ namespace Validatox.Editor.Validators
     {
         [SerializeField, HideInInspector] private ValidationResult result;
         [SerializeField, HideInInspector] private bool hasResult;
+        [SerializeField] private bool dirtyResult;
+
+        public bool DirtyResult => dirtyResult;
 
         public bool TryGetCachedResult(out ValidationResult result)
         {
@@ -28,18 +31,22 @@ namespace Validatox.Editor.Validators
         {
             result = null;
             hasResult = false;
-            SerializeDirty(this);
+            dirtyResult = false;
+            SerializeIfDirty(this);
         }
 
         public ValidationResult Validate(Action<ValidationProgress> progress = null)
         {
+            result = null;
+            hasResult = false;
+            dirtyResult = false;
             var res = new List<ValidationFailure>();
             if (!CanValidate()) return new ValidationResult(res, DateTime.Now);
             ValidationStart();
             Validate(res, progress);
-            hasResult = true;
-            SerializeDirty(this);
+            SerializeIfDirty(this);
             ValidationEnd();
+            hasResult = true;
             result = new ValidationResult(res, DateTime.Now);
             return result;
         }
@@ -67,6 +74,14 @@ namespace Validatox.Editor.Validators
         /// <summary>
         ///   Called when the <see cref="Validator"/> needs to be serialized
         /// </summary>
-        protected virtual void SerializeDirty(Validator dirty) => EditorUtility.SetDirty(dirty);
+        protected virtual void SerializeIfDirty(Validator dirty)
+        {
+            AssetDatabase.SaveAssetIfDirty(dirty);
+        }
+
+        private void OnValidate()
+        {
+            if (hasResult) dirtyResult = true;
+        }
     }
 }
