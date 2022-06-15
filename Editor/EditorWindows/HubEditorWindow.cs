@@ -32,8 +32,17 @@ namespace Validatox.Editor
         private ResultFilter resultFilter;
         private GuardValidator guardValidator;
 
+        private List<Validator> paresedValidators;
+
+        private void OnDisable()
+        {
+            EditorApplication.projectChanged -= RefreshParsedValidators;
+        }
+
         private void OnEnable()
         {
+            RefreshParsedValidators();
+            EditorApplication.projectChanged += RefreshParsedValidators;
             autoRepaintOnSceneChange = true;
             minSize = new Vector2(512, 512);
             context = Context.Groups;
@@ -124,6 +133,11 @@ namespace Validatox.Editor
                 ValidatoxSettings.Edit(s => s.GuardValidatorGuid = string.Empty);
             }
             guardValidator = overrideGuard;
+        }
+
+        private void RefreshParsedValidators()
+        {
+            paresedValidators = ValidatoxTools.GetAllBehavioursInAsset<Validator>();
         }
 
         private void DrawContext()
@@ -338,7 +352,7 @@ namespace Validatox.Editor
 
         private List<Validator> GetValidatorsByContext()
         {
-            var validators = ValidatoxTools.GetAllBehavioursInAsset<Validator>();
+            var validators = paresedValidators;
             switch (context)
             {
                 case Context.Groups:
