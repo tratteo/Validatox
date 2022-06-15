@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using Validatox.Editor.Settings;
 using Validatox.Editor.Validators;
 
 namespace Validatox.Editor
@@ -71,21 +73,7 @@ namespace Validatox.Editor
         /// </summary>
         public static bool ValidateGuarded(Action<ValidationProgress> progress)
         {
-            var res = ValidatoxTools.GetAllBehavioursInAsset<GuardValidator>($"Editor");
-            if (res.Count > 0)
-            {
-                Debug.Log($"Using override of {nameof(GuardValidator)}");
-            }
-            else
-            {
-                res = ValidatoxTools.GetAllBehavioursAtPath<GuardValidator>(PackageEditorPath);
-                if (res.Count <= 0)
-                {
-                    Debug.LogWarning($"Unable to find {nameof(GuardValidator)}. Try creating a new one in the Editor folder of the project");
-                    return false;
-                }
-            }
-            var validator = res[0];
+            var validator = LoadActiveGuard();
             var failure = false;
             var validatorName = validator.name;
             var result = validator.Validate(progress);
@@ -105,6 +93,27 @@ namespace Validatox.Editor
             }
 
             return !failure;
+        }
+
+        public static GuardValidator LoadActiveGuard()
+        {
+            var settings = ValidatoxSettings.Load();
+            if (string.IsNullOrEmpty(settings.GuardValidatorGuid))
+            {
+                var res = ValidatoxTools.GetAllBehavioursAtPath<GuardValidator>(PackageEditorPath);
+                if (res.Count <= 0)
+                {
+                    Debug.LogWarning($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder");
+                    var guard = ScriptableObject.CreateInstance<GuardValidator>();
+                    AssetDatabase.CreateAsset(guard, $"{PackageEditorPath}{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
+                    return guard;
+                }
+                return res[0];
+            }
+            else
+            {
+                return AssetDatabase.LoadAssetAtPath<GuardValidator>(AssetDatabase.GUIDToAssetPath(settings.GuardValidatorGuid));
+            }
         }
 
         /// <summary>

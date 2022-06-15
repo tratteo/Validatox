@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 using UnityEngine;
+using Validatox.Editor.Settings;
 using Validatox.Editor.Validators;
 
 namespace Validatox.Editor
@@ -29,6 +30,7 @@ namespace Validatox.Editor
         private ValidationFilter validationFilter;
         private DirtyFilter dirtyFilter;
         private ResultFilter resultFilter;
+        private GuardValidator guardValidator;
 
         private void OnEnable()
         {
@@ -124,6 +126,19 @@ namespace Validatox.Editor
             switch (context)
             {
                 case Context.Guard:
+                    var oldGuard = guardValidator;
+                    guardValidator = EditorGUILayout.ObjectField("Override", guardValidator, typeof(GuardValidator), false) as GuardValidator;
+                    if (oldGuard != guardValidator)
+                    {
+                        if (guardValidator)
+                        {
+                            ValidatoxSettings.Edit(s => s.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(guardValidator)).ToString());
+                        }
+                        else
+                        {
+                            ValidatoxSettings.Edit(s => s.GuardValidatorGuid = string.Empty);
+                        }
+                    }
                     break;
 
                 default:
