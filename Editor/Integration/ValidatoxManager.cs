@@ -74,6 +74,7 @@ namespace Validatox.Editor
         public static bool ValidateGuarded(Action<ValidationProgress> progress)
         {
             var validator = LoadActiveGuard();
+            Debug.Log($"Using {nameof(GuardValidator)}: {validator.name}");
             var failure = false;
             var validatorName = validator.name;
             var result = validator.Validate(progress);

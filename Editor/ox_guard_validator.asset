@@ -14,11 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   result:
     failures: []
-    timeString: 12/06/2022 02:21:18
-  hasResult: 1
+    timeString: 
+  hasResult: 0
   dirtyResult: 0
   validateAssets: 1
   allScenes: 1
-  scenes:
-  - path: Assets/Scenes/TestScene.unity
-    name: TestScene
+  scenes: []

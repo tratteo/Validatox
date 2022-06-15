@@ -15,7 +15,7 @@ namespace Validatox.Editor.Validators
     {
         [SerializeField] private bool validateAssets = true;
 
-        [SerializeField] private bool allScenes = false;
+        [SerializeField] private bool allScenes = true;
 
         [SerializeField] private SceneReference[] scenes;
 

@@ -58,6 +58,10 @@ namespace Validatox.Editor
             validationFilter = ValidationFilter.All;
             dirtyFilter = DirtyFilter.All;
             resultFilter = ResultFilter.All;
+
+            var guid = ValidatoxSettings.Load().GuardValidatorGuid;
+            guardValidator = string.IsNullOrEmpty(guid) ? null : AssetDatabase.LoadAssetAtPath<GuardValidator>(AssetDatabase.GUIDToAssetPath(guid));
+
             titleContent.image = Resources.LogoPadded;
             titleContent.tooltip = "Get validated :D";
         }
@@ -83,33 +87,43 @@ namespace Validatox.Editor
             }
             GUILayout.Space(25);
 
-            if (context is not Context.Guard)
+            GUILayout.Label("Filters", textStyle.Alignment(TextAnchor.MiddleCenter), GUILayout.ExpandWidth(true));
+            GUILayout.BeginVertical("box", GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            GUILayout.Label("Status", textStyle.FontSize(12));
+            validationFilter = (ValidationFilter)EditorGUILayout.EnumPopup(validationFilter, GUILayout.ExpandWidth(true));
+            if (validationFilter is ValidationFilter.All or ValidationFilter.Validated)
             {
-                GUILayout.Label("Filters", textStyle.Alignment(TextAnchor.MiddleCenter), GUILayout.ExpandWidth(true));
-                GUILayout.BeginVertical("box", GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
-                GUILayout.Label("Status", textStyle.FontSize(12));
-                validationFilter = (ValidationFilter)EditorGUILayout.EnumPopup(validationFilter, GUILayout.ExpandWidth(true));
-                if (validationFilter is ValidationFilter.All or ValidationFilter.Validated)
-                {
-                    GUILayout.Space(5);
-                    GUILayout.Label("Result", textStyle.FontSize(12));
-                    resultFilter = (ResultFilter)EditorGUILayout.EnumPopup(resultFilter, GUILayout.ExpandWidth(true));
-                    GUILayout.Space(5);
-                    GUILayout.Label("Dirty status", textStyle.FontSize(12));
-                    dirtyFilter = (DirtyFilter)EditorGUILayout.EnumPopup(dirtyFilter, GUILayout.ExpandWidth(true));
-                }
-                GUILayout.Space(10);
-                EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, 1, rectStyle), new Color(0.5F, 0.5F, 0.5F, 1));
-                GUILayout.Space(10);
-                if (GUILayout.Button("Clear"))
-                {
-                    validationFilter = ValidationFilter.All;
-                    resultFilter = ResultFilter.All;
-                    dirtyFilter = DirtyFilter.All;
-                }
-                GUILayout.EndVertical();
+                GUILayout.Space(5);
+                GUILayout.Label("Result", textStyle.FontSize(12));
+                resultFilter = (ResultFilter)EditorGUILayout.EnumPopup(resultFilter, GUILayout.ExpandWidth(true));
+                GUILayout.Space(5);
+                GUILayout.Label("Dirty status", textStyle.FontSize(12));
+                dirtyFilter = (DirtyFilter)EditorGUILayout.EnumPopup(dirtyFilter, GUILayout.ExpandWidth(true));
+            }
+            GUILayout.Space(10);
+            EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, 1, rectStyle), new Color(0.5F, 0.5F, 0.5F, 1));
+            GUILayout.Space(10);
+            if (GUILayout.Button("Clear"))
+            {
+                validationFilter = ValidationFilter.All;
+                resultFilter = ResultFilter.All;
+                dirtyFilter = DirtyFilter.All;
             }
             GUILayout.EndVertical();
+            GUILayout.EndVertical();
+        }
+
+        private void ChangeGuardValidator(GuardValidator overrideGuard)
+        {
+            if (overrideGuard)
+            {
+                ValidatoxSettings.Edit(s => s.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(overrideGuard)).ToString());
+            }
+            else
+            {
+                ValidatoxSettings.Edit(s => s.GuardValidatorGuid = string.Empty);
+            }
+            guardValidator = overrideGuard;
         }
 
         private void DrawContext()
@@ -122,27 +136,52 @@ namespace Validatox.Editor
                 s.padding = new RectOffset(0, 0, 10, 20);
                 s.normal.textColor = Color.white;
             }), GUILayout.ExpandWidth(true));
-
+            var validators = GetValidatorsByContext();
             switch (context)
             {
                 case Context.Guard:
-                    var oldGuard = guardValidator;
                     guardValidator = EditorGUILayout.ObjectField("Override", guardValidator, typeof(GuardValidator), false) as GuardValidator;
-                    if (oldGuard != guardValidator)
+                    if (!guardValidator)
                     {
-                        if (guardValidator)
-                        {
-                            ValidatoxSettings.Edit(s => s.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(guardValidator)).ToString());
-                        }
-                        else
-                        {
-                            ValidatoxSettings.Edit(s => s.GuardValidatorGuid = string.Empty);
-                        }
+                        GUILayout.Label($"Using Validatox default {nameof(GuardValidator)} located in {ValidatoxManager.PackageEditorPath}", infoStyle);
+                        GUILayout.Space(5);
                     }
+                    ChangeGuardValidator(guardValidator);
+                    EditorGUILayout.Space(10);
+                    EditorGUILayout.BeginHorizontal();
+                    EditorGUI.BeginDisabledGroup(validators.Count <= 0);
+                    if (GUILayout.Button("Delete all", GUILayout.MaxWidth(100)))
+                    {
+                        if (EditorUtility.DisplayDialog($"Delete all", $"Are you sure you want to delete all {context}?\n", "Yes", "Cancel"))
+                        {
+                            var failed = new List<string>();
+                            AssetDatabase.DeleteAssets((from a in validators select AssetDatabase.GetAssetPath(a)).ToArray(), failed);
+                            ShowNotification(new GUIContent($"Successfully deleted {validators.Count - failed.Count}/{validators.Count}"), 0.5F);
+                        }
+                        GUIUtility.ExitGUI();
+                    }
+                    EditorGUI.EndDisabledGroup();
+                    if (GUILayout.Button("Validate", GUILayout.MaxWidth(100)))
+                    {
+                        ValidatoxManager.Validate();
+                        GUIUtility.ExitGUI();
+                    }
+                    EditorGUILayout.EndHorizontal();
+                    EditorGUILayout.Space(10);
+                    scrollPos = GUILayout.BeginScrollView(scrollPos, GUI.skin.box, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+
+                    foreach (var group in validators)
+                    {
+                        DrawValidatorAsset(group);
+                        GUILayout.Space(5);
+                        EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, 1, rectStyle), new Color(0.5F, 0.5F, 0.5F, 1));
+                        GUILayout.Space(5);
+                    }
+                    GUILayout.EndScrollView();
                     break;
 
                 default:
-                    var validators = GetValidatorsByContext();
+
                     GUILayout.BeginHorizontal(GUILayout.Height(EditorGUIUtility.singleLineHeight * 2));
                     EditorGUI.BeginDisabledGroup(validators.Count <= 0);
                     if (GUILayout.Button("Delete all", GUILayout.MaxWidth(100)))
@@ -161,7 +200,7 @@ namespace Validatox.Editor
                     GUILayout.EndHorizontal();
                     GUILayout.Label("Count: " + validators.Count, infoStyle, GUILayout.ExpandWidth(true));
                     GUILayout.Space(5);
-                    scrollPos = GUILayout.BeginScrollView(scrollPos, GUI.skin.window, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+                    scrollPos = GUILayout.BeginScrollView(scrollPos, GUI.skin.box, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
 
                     foreach (var group in validators)
                     {
@@ -214,10 +253,22 @@ namespace Validatox.Editor
             }
             GUILayout.Space(10);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button(new GUIContent("Validate"), GUILayout.MaxWidth(100)))
+            if (validatorBase is GuardValidator guard)
             {
-                validatorBase.Validate(EditorProgressReport);
-                EditorUtility.ClearProgressBar();
+                EditorGUI.BeginDisabledGroup(guard == guardValidator);
+                if (GUILayout.Button(new GUIContent("Assign"), GUILayout.MaxWidth(100)))
+                {
+                    ChangeGuardValidator(guard);
+                }
+                EditorGUI.EndDisabledGroup();
+            }
+            else
+            {
+                if (GUILayout.Button(new GUIContent("Validate"), GUILayout.MaxWidth(100)))
+                {
+                    validatorBase.Validate(EditorProgressReport);
+                    EditorUtility.ClearProgressBar();
+                }
             }
             EditorGUI.BeginDisabledGroup(!hasResult);
             if (GUILayout.Button(new GUIContent("Clear"), GUILayout.MaxWidth(100)))
@@ -246,54 +297,48 @@ namespace Validatox.Editor
 
         #region Filtering
 
-        private List<Validator> ApplyDirtyFilter(List<Validator> validators, DirtyFilter filter)
+        private List<Validator> ApplyFilters(List<Validator> validators)
         {
-            Predicate<Validator> filterPredicate = null;
-            filterPredicate = filter switch
-            {
-                DirtyFilter.Dirty => v => v.DirtyResult,
-                DirtyFilter.Clean => v => !v.DirtyResult,
-                DirtyFilter.All => v => true,
-                _ => v => true,
-            };
-            return validators.FindAll(filterPredicate);
-        }
+            Predicate<Validator> validationPredicate = null;
+            Predicate<Validator> dirtyPredicate = null;
+            Predicate<Validator> resultPredicate = null;
 
-        private List<Validator> ApplyResultFilter(List<Validator> validators, ResultFilter filter)
-        {
-            Predicate<Validator> filterPredicate = null;
-            filterPredicate = filter switch
-            {
-                ResultFilter.Success => v => v.TryGetCachedResult(out var res) && res.Successful,
-                ResultFilter.Failure => v => v.TryGetCachedResult(out var res) && !res.Successful,
-                ResultFilter.All => v => true,
-                _ => v => true,
-            };
-            return validators.FindAll(filterPredicate);
-        }
-
-        private List<Validator> ApplyValidationFilter(List<Validator> validators, ValidationFilter filter)
-        {
-            Predicate<Validator> filterPredicate = null;
-            filterPredicate = filter switch
+            validationPredicate = validationFilter switch
             {
                 ValidationFilter.NotValidated => v => !v.TryGetCachedResult(out _),
                 ValidationFilter.Validated => v => v.TryGetCachedResult(out _),
                 ValidationFilter.All => v => true,
                 _ => v => true,
             };
-            return validators.FindAll(filterPredicate);
+            if (validationFilter is ValidationFilter.NotValidated)
+            {
+                dirtyPredicate = s => true;
+                resultPredicate = s => true;
+            }
+            else
+            {
+                dirtyPredicate = dirtyFilter switch
+                {
+                    DirtyFilter.Dirty => v => v.DirtyResult,
+                    DirtyFilter.Clean => v => !v.DirtyResult,
+                    DirtyFilter.All => v => true,
+                    _ => v => true,
+                };
+                resultPredicate = resultFilter switch
+                {
+                    ResultFilter.Success => v => v.TryGetCachedResult(out var res) && res.Successful,
+                    ResultFilter.Failure => v => v.TryGetCachedResult(out var res) && !res.Successful,
+                    ResultFilter.All => v => true,
+                    _ => v => true,
+                };
+            }
+
+            return validators.FindAll(v => dirtyPredicate(v) && resultPredicate(v) && validationPredicate(v));
         }
 
         private List<Validator> GetValidatorsByContext()
         {
             var validators = ValidatoxTools.GetAllBehavioursInAsset<Validator>();
-            validators = ApplyValidationFilter(validators, validationFilter);
-            if (validationFilter is not ValidationFilter.NotValidated)
-            {
-                validators = ApplyDirtyFilter(validators, dirtyFilter);
-                validators = ApplyResultFilter(validators, resultFilter);
-            }
             switch (context)
             {
                 case Context.Groups:
@@ -301,15 +346,17 @@ namespace Validatox.Editor
                     break;
 
                 case Context.Validators:
-                    validators = validators.FindAll(v => v is not GroupValidator or GuardValidator);
+                    validators = validators.FindAll(v => v is not GroupValidator and not GuardValidator);
                     break;
 
                 case Context.Guard:
+                    validators = validators.FindAll(v => v is GuardValidator);
                     break;
 
                 default:
                     break;
             }
+            validators = ApplyFilters(validators);
             return validators;
         }
 

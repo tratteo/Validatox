@@ -5,13 +5,13 @@ namespace Validatox.Editor
 {
     internal static class MenuItems
     {
-        [MenuItem("Validatox/Validate groups", false, 4)]
+        [MenuItem("Validatox/Run/Validate groups", false, 4)]
         internal static void ValidateAllGroups() => ValidatoxManager.ValidateAllGroups();
 
-        [MenuItem("Validatox/Validate guardeds", false, 8)]
+        [MenuItem("Validatox/Run/Validate guardeds", false, 8)]
         internal static void ValidateGuardeds() => ValidatoxManager.ValidateGuarded();
 
-        [MenuItem("Validatox/Validate", false, 4)]
+        [MenuItem("Validatox/Run/Validate", false, 4)]
         internal static void Validate()
         {
             ValidatoxManager.ValidateAllGroups();
