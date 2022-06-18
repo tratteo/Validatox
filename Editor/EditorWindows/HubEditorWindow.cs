@@ -118,6 +118,20 @@ namespace Validatox.Editor
                 resultFilter = ResultFilter.All;
                 dirtyFilter = DirtyFilter.All;
             }
+            GUILayout.Space(10);
+            GUILayout.FlexibleSpace();
+            EditorGUI.DrawRect(EditorGUILayout.GetControlRect(false, 1, rectStyle), new Color(0.5F, 0.5F, 0.5F, 1));
+            GUILayout.Space(10);
+            if (GUILayout.Button("Validate everything"))
+            {
+                if (EditorUtility.DisplayDialog($"Validate everything", $"Are you sure you want to run validation on the whole project?\nDepending on the size of the project this may take a while.", "Yes", "Cancel"))
+                {
+                    ValidatoxManager.Validate();
+                }
+                GUIUtility.ExitGUI();
+            }
+            GUILayout.Space(5);
+
             GUILayout.EndVertical();
             GUILayout.EndVertical();
         }
@@ -142,7 +156,7 @@ namespace Validatox.Editor
 
         private void DrawContext()
         {
-            GUILayout.BeginVertical(GUI.skin.window.Copy(s => s.margin = new RectOffset(10, 10, 10, 10)), GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
+            GUILayout.BeginVertical(GUI.skin.window, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
             GUILayout.Label(context.ToString(), GUIStyle.none.Copy(s =>
             {
                 s.fontSize = 20;
