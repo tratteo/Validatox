@@ -5,9 +5,7 @@ using UnityEngine;
 
 namespace Validatox.Editor.Validators
 {
-    /// <summary>
-    ///   Extend this base class to create any kind of validator <see cref="ScriptableObject"/> able to be validated
-    /// </summary>
+    [Serializable]
     public abstract class Validator : ScriptableObject
     {
         [SerializeField, HideInInspector] private ValidationResult result;
@@ -79,9 +77,23 @@ namespace Validatox.Editor.Validators
             AssetDatabase.SaveAssetIfDirty(dirty);
         }
 
-        private void OnValidate()
-        {
-            if (hasResult) dirtyResult = true;
-        }
+        //private bool CheckDirty()
+        //{
+        //    //var memoryStream = new MemoryStream();
+        //    //var formatter = new BinaryFormatter();
+        //    //using (memoryStream)
+        //    //{
+        //    //    formatter.Serialize(memoryStream, this);
+        //    //}
+        //    //Debug.Log(Convert.ToBase64String(memoryStream.ToArray()));
+        //    //memoryStream.Close();
+        //    Debug.Log(JsonConvert.SerializeObject(this));
+        //    return false;
+        //}
+
+        //private void OnValidate()
+        //{
+        //    if (hasResult && CheckDirty()) dirtyResult = true;
+        //}
     }
 }

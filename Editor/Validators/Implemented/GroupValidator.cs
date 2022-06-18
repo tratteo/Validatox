@@ -5,6 +5,7 @@ using Validatox.Meta;
 
 namespace Validatox.Editor.Validators
 {
+    [Serializable]
     /// <summary>
     ///   A collection of <see cref="Validator"/> elements that can be validated in the Editor
     /// </summary>
