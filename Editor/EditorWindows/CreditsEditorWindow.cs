@@ -1,43 +1,35 @@
-﻿using UnityEditor;
+﻿using Pury.Editor;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace Validatox.Editor
 {
-    internal class CreditsEditorWindow : EditorWindow
+    internal class CreditsEditorWindow : PuryWindow
     {
         private GUIStyle titleStyle;
-        private GUIStyle textStyle;
 
-        private void OnEnable()
+        protected override void Layout(List<PurySidebar> sidebars)
         {
             maxSize = new Vector2(400, 512);
             minSize = new Vector2(400, 512);
             titleStyle = new GUIStyle()
             {
                 fontSize = 20,
-                richText = true,
-                clipping = TextClipping.Clip,
-                fontStyle = FontStyle.Bold,
-                alignment = TextAnchor.MiddleCenter,
-                imagePosition = ImagePosition.ImageAbove
+                richText = true
             };
-            titleStyle.normal.textColor = new Color(188 / 255F, 210 / 255F, 238 / 255F);
+            titleStyle.normal.textColor = new Color(205 / 255F, 205 / 255F, 205 / 255F);
 
-            textStyle = new GUIStyle()
-            {
-                alignment = TextAnchor.MiddleLeft,
-                imagePosition = ImagePosition.ImageLeft,
-                richText = true,
-                fontSize = 14
-            };
-            textStyle.normal.textColor = Color.white;
+            ContentOrientation = Orientation.Vertical;
         }
 
-        private void OnGUI()
+        protected override void DrawContent()
         {
-            GUILayout.Space(20);
-            GUILayout.Label(new GUIContent() { image = Resources.Logo }, titleStyle, GUILayout.Height(200));
-            GUILayout.Label(new GUIContent() { image = Resources.Title, text = "\nBy <i>Siamango</i>" }, titleStyle, GUILayout.Height(128));
+            GUILayout.BeginHorizontal();
+            Center(() => GUILayout.Label(new GUIContent() { image = Resources.Logo }, GUILayout.Width(250), GUILayout.Height(250)));
+            GUILayout.EndHorizontal();
+            GUILayout.BeginHorizontal();
+            Center(() => GUILayout.Label("\nBy <i>Siamango</i>", titleStyle));
+            GUILayout.EndHorizontal();
         }
     }
 }

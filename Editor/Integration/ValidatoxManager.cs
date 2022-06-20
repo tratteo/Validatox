@@ -33,13 +33,14 @@ namespace Validatox.Editor
             progress?.Invoke(progressVal);
             var objs = ValidatoxTools.GetAllBehavioursInAsset<GroupValidator>();
             var failure = false;
+            var window = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
             for (var i = 0; i < objs.Count; i++)
             {
                 var o = objs[i];
                 var res = o.Validate(progress);
                 if (res.Successful)
                 {
-                    Debug.Log($"{o.name} -> <color=#55d971>Validation successful! <b>:D</b></color>", o);
+                    window.NotifyLog($"{o.name} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert);
                 }
                 else
                 {
@@ -49,7 +50,7 @@ namespace Validatox.Editor
                     {
                         builder.Append(r.ToString() + "\n");
                     }
-                    Debug.LogError(builder.ToString(), o);
+                    window.NotifyLog(builder.ToString(), LogType.Error);
                 }
             }
             return !failure;
@@ -74,13 +75,15 @@ namespace Validatox.Editor
         public static bool ValidateGuarded(Action<ValidationProgress> progress)
         {
             var validator = LoadActiveGuard();
-            Debug.Log($"Using {nameof(GuardValidator)}: {validator.name}");
+            var window = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
+            window.NotifyLog($"Using {nameof(GuardValidator)}: {validator.name}");
+
             var failure = false;
             var validatorName = validator.name;
             var result = validator.Validate(progress);
             if (result.Successful)
             {
-                Debug.Log($"{validatorName} -> <color=#55d971>Validation successful! <b>:D</b></color>");
+                window.NotifyLog($"{validatorName} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert);
             }
             else
             {
@@ -90,7 +93,7 @@ namespace Validatox.Editor
                 {
                     builder.Append(r.ToString() + "\n");
                 }
-                Debug.LogError(builder.ToString());
+                window.NotifyLog(builder.ToString(), LogType.Error);
             }
 
             return !failure;

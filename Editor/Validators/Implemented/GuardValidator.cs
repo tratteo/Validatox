@@ -98,20 +98,9 @@ namespace Validatox.Editor.Validators
 
         private void Log(string message, LogType type = LogType.Log)
         {
-            switch (type)
-            {
-                case LogType.Log:
-                    Debug.Log($"<b>[GuardedValidator]</b> -> {message}");
-                    break;
-
-                case LogType.Warning:
-                    Debug.LogWarning($"<b>[GuardedValidator]</b> -> {message}");
-                    break;
-
-                default:
-                    Debug.LogError($"<b>[GuardedValidator]</b> -> {message}");
-                    break;
-            }
+            var validatoxLog = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
+            if (validatoxLog is null) return;
+            validatoxLog.NotifyLog($"<b>[GuardedValidator]</b> -> {message}", type);
         }
 
         private ValidationFailure BuildFailure(GuardAttribute guarded, FieldInfo field, Type parentClass, string path, bool isAsset)
