@@ -17,13 +17,7 @@ namespace Validatox.Editor
         {
             serializedObject.Update();
             DrawProperties();
-            if (serializedObject.ApplyModifiedProperties())
-            {
-                var prop = serializedObject.FindProperty("dirtyResult");
-                serializedObject.Update();
-                prop.boolValue = true;
-                serializedObject.ApplyModifiedProperties();
-            }
+            serializedObject.ApplyModifiedProperties();
         }
 
         protected virtual void DrawProperties()

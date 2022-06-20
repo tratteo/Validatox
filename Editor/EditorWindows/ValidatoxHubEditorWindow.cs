@@ -240,7 +240,7 @@ namespace Validatox.Editor
                     }
                     if (GUILayout.Button(EditorGUIUtility.TrIconContent("TreeEditor.Trash"), GUILayout.Width(25), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
                     {
-                        if (EditorUtility.DisplayDialog($"Delete {validatorBase.name}", $"Are you sure you want to delete the group {validatorBase.name}?\n", "Yes", "Cancel"))
+                        if (EditorUtility.DisplayDialog($"Delete {validatorBase.name}", $"Are you sure you want to delete {validatorBase.name}?\n", "Yes", "Cancel"))
                         {
                             AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(validatorBase));
                         }

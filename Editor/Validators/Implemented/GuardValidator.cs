@@ -68,10 +68,10 @@ namespace Validatox.Editor.Validators
             }
         }
 
-        protected override void SerializeIfDirty(Validator dirty)
+        protected override void SerializeValidation(Validator dirty)
         {
             dirty = ExecuteMutex.isExecuting ? AssetDatabase.LoadAssetAtPath<Validator>(ExecuteMutex.executingAssetPath) : dirty;
-            base.SerializeIfDirty(dirty);
+            base.SerializeValidation(dirty);
         }
 
         protected override bool CanValidate()
