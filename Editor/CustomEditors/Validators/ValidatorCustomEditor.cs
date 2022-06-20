@@ -26,17 +26,9 @@ namespace Validatox.Editor
             EditorGUILayout.BeginHorizontal();
             if (GUILayout.Button("Validate"))
             {
-                var res = validator.Validate(EditorProgressReport);
-                var window = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
-                if (res.Successful)
-                {
-                    window.NotifyLog($"{validator.name} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert);
-                }
-                else
-                {
-                    window.NotifyLog($"{validator.name} -> <color=#ed4e4e>Validation failed with {res.Failures.Count} errors</color>\nClick for more info\n", LogType.Error);
-                }
+                validator.Validate(EditorProgressReport);
                 EditorUtility.ClearProgressBar();
+                validator.LogResult();
             }
 
             var hasResult = validator.TryGetCachedResult(out var result);

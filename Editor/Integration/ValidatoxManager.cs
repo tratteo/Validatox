@@ -1,6 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Text;
 using UnityEditor;
 using UnityEngine;
 using Validatox.Editor.Settings;
@@ -33,25 +32,13 @@ namespace Validatox.Editor
             progress?.Invoke(progressVal);
             var objs = ValidatoxTools.GetAllBehavioursInAsset<GroupValidator>();
             var failure = false;
-            var window = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
             for (var i = 0; i < objs.Count; i++)
             {
-                var o = objs[i];
-                var res = o.Validate(progress);
-                if (res.Successful)
-                {
-                    window.NotifyLog($"{o.name} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert);
-                }
-                else
-                {
-                    failure = true;
-                    var builder = new StringBuilder($"{o.name} -> <color=#ed4e4e>Validation failed with {res.Failures.Count} errors</color>\nClick for more info\n");
-                    foreach (var r in res.Failures)
-                    {
-                        builder.Append(r.ToString() + "\n");
-                    }
-                    window.NotifyLog(builder.ToString(), LogType.Error);
-                }
+                objs[i].Validate(progress);
+            }
+            foreach (var obj in objs)
+            {
+                obj.LogResult();
             }
             return !failure;
         }
@@ -74,28 +61,12 @@ namespace Validatox.Editor
         /// </summary>
         public static bool ValidateGuarded(Action<ValidationProgress> progress)
         {
-            var validator = LoadActiveGuard();
-            var window = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
-            window.NotifyLog($"Using {nameof(GuardValidator)}: {validator.name}");
-
+            var guardValidator = LoadActiveGuard();
             var failure = false;
-            var validatorName = validator.name;
-            var result = validator.Validate(progress);
-            if (result.Successful)
-            {
-                window.NotifyLog($"{validatorName} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert);
-            }
-            else
-            {
-                failure = true;
-                var builder = new StringBuilder($"{validatorName} -> <color=#ed4e4e>Validation failed with {result.Failures.Count} errors</color>\nClick for more info\n");
-                foreach (var r in result.Failures)
-                {
-                    builder.Append(r.ToString() + "\n");
-                }
-                window.NotifyLog(builder.ToString(), LogType.Error);
-            }
+            var validatorPath = AssetDatabase.GetAssetPath(guardValidator);
 
+            guardValidator.Validate(progress);
+            AssetDatabase.LoadAssetAtPath<GuardValidator>(validatorPath).LogResult();
             return !failure;
         }
 
@@ -107,7 +78,7 @@ namespace Validatox.Editor
                 var res = ValidatoxTools.GetAllBehavioursAtPath<GuardValidator>(PackageEditorPath);
                 if (res.Count <= 0)
                 {
-                    Debug.LogWarning($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder");
+                    ValidatoxLogEditorWindow.NotifyLog($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder", LogType.Warning);
                     var guard = ScriptableObject.CreateInstance<GuardValidator>();
                     AssetDatabase.CreateAsset(guard, $"{PackageEditorPath}{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
                     return guard;

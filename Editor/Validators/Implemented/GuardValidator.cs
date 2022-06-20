@@ -24,7 +24,17 @@ namespace Validatox.Editor.Validators
             var assets = new List<UnityEngine.Object>();
             var progressVal = new ValidationProgress(nameof(GuardValidator), "Retrieving assets...");
             progress?.Invoke(progressVal);
-            if (validateAssets) assets.AddRange(ValidatoxTools.GetUnityObjectsInAssets().ToArray());
+            if (validateAssets)
+            {
+                var singleList = new List<UnityEngine.Object>();
+                var assetsObjs = ValidatoxTools.GetUnityObjectsInAssets();
+                foreach (var a in assetsObjs)
+                {
+                    singleList.Add(a);
+                    assets.AddRange(ValidatoxTools.GetAllBehavioursObjects(singleList));
+                    singleList.Clear();
+                }
+            }
 
             progress?.Invoke(progressVal.Doing("Retrieving scenes..."));
             var scenesPaths = new List<string>();
@@ -49,7 +59,7 @@ namespace Validatox.Editor.Validators
             for (var i = 0; i < assets.Count; i++, count++)
             {
                 var obj = assets[i];
-                failures.AddRange(GuardRecursively(obj, obj, AssetDatabase.GetAssetPath(obj)));
+                failures.AddRange(Guard(obj, obj, AssetDatabase.GetAssetPath(obj)));
                 progress?.Invoke(progressVal.WithProgress((float)count / totalLength));
             }
             Log($"Validated {assets.Count} assets");
@@ -61,7 +71,7 @@ namespace Validatox.Editor.Validators
                 {
                     var scene = scenesPaths[i];
                     progressVal.Doing("Validating scene: " + scene);
-                    ValidatoxTools.ExecuteForComponentsInScene<MonoBehaviour>(scene, m => failures.AddRange(GuardRecursively(m, m.gameObject, scene)));
+                    ValidatoxTools.ExecuteForComponentsInScene<MonoBehaviour>(scene, m => failures.AddRange(Guard(m, m.gameObject, scene)));
                     progress?.Invoke(progressVal.WithProgress((float)count / totalLength));
                 }
                 Log($"Validated {(allScenes ? "all" : scenesPaths.Count)} scenes");
@@ -96,12 +106,7 @@ namespace Validatox.Editor.Validators
             ExecuteMutex.executingAssetPath = string.Empty;
         }
 
-        private void Log(string message, LogType type = LogType.Log)
-        {
-            var validatoxLog = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
-            if (validatoxLog is null) return;
-            validatoxLog.NotifyLog($"<b>[GuardedValidator]</b> -> {message}", type);
-        }
+        private void Log(string message, LogType type = LogType.Log) => ValidatoxLogEditorWindow.NotifyLog($"<b>[GuardedValidator]</b> -> {message}", type);
 
         private ValidationFailure BuildFailure(GuardAttribute guarded, FieldInfo field, Type parentClass, string path, bool isAsset)
         {
@@ -132,7 +137,7 @@ namespace Validatox.Editor.Validators
             return ValidationFailure.Of(this).Reason(logBuilder.ToString()).By(path, field.Name);
         }
 
-        private List<ValidationFailure> GuardRecursively(object behaviour, UnityEngine.Object parentObj, string path)
+        private List<ValidationFailure> Guard(object behaviour, UnityEngine.Object parentObj, string path)
         {
             var failures = new List<ValidationFailure>();
             if (behaviour is null) return failures;

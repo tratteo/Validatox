@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Security.Cryptography;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -36,6 +37,24 @@ namespace Validatox.Editor.Validators
             hasResult = false;
             dirtyResult = false;
             SerializeValidation(this);
+        }
+
+        public void LogResult()
+        {
+            if (!hasResult) return;
+            if (result.Successful)
+            {
+                ValidatoxLogEditorWindow.NotifyLog($"{name} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert, this);
+            }
+            else
+            {
+                var builder = new StringBuilder($"{name} -> <color=#ed4e4e>Validation failed with {result.Failures.Count} errors <b>X(</b> \n</color>");
+                foreach (var r in result.Failures)
+                {
+                    builder.Append(r.ToString() + "\n");
+                }
+                ValidatoxLogEditorWindow.NotifyLog(builder.ToString(), LogType.Error, this);
+            }
         }
 
         public ValidationResult Validate(Action<ValidationProgress> progress = null)

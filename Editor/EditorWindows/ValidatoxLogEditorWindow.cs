@@ -1,5 +1,4 @@
-﻿using Newtonsoft.Json;
-using Pury.Editor;
+﻿using Pury.Editor;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -12,7 +11,6 @@ namespace Validatox.Editor
     {
         private static readonly string Location = $"{Environment.GetEnvironmentVariable("appdata")}{Path.AltDirectorySeparatorChar}Unity{Path.AltDirectorySeparatorChar}Validatox{Path.AltDirectorySeparatorChar}logsdb.log";
         private List<Log> logs;
-        private List<Log.Metadata> logsMeta;
         private PurySeparator separator;
         private RectOffset defaultMargin;
         private GUIStyle logStyle;
@@ -20,17 +18,12 @@ namespace Validatox.Editor
         private GUIStyle failureStyle;
         private Vector2 scrollPos;
 
-        public void NotifyLog(string log, LogType type = LogType.Log)
+        public static void NotifyLog(string log, LogType type = LogType.Log, UnityEngine.Object subject = null)
         {
-            var logItem = new Log(type, DateTime.Now.ToLongTimeString() + " | " + log);
-            logs.Add(logItem);
-            logsMeta.Add(logItem.Meta);
-            //if (!Directory.Exists(Path.GetDirectoryName(Location)))
-            //{
-            //    Directory.CreateDirectory(Path.GetDirectoryName(Location));
-            //}
-            //Debug.Log(Environment.GetEnvironmentVariable("appdata"));
-            //File.WriteAllText(Location, JsonConvert.SerializeObject(logsMeta, Formatting.Indented));
+            var window = GetWindow<ValidatoxLogEditorWindow>(null, false);
+            if (window is null) return;
+            var logItem = new Log(type, DateTime.Now.ToLongTimeString() + " | " + log, subject);
+            window.logs.Add(logItem);
         }
 
         protected override void DrawContent()
@@ -38,7 +31,17 @@ namespace Validatox.Editor
             scrollPos = GUILayout.BeginScrollView(scrollPos);
             foreach (var l in logs)
             {
-                GUILayout.Label(l.Content, GetStyle(l.LogType));
+                HorizontalGroup(() =>
+                {
+                    if (l.Subject)
+                    {
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_ViewToolZoom"), GUILayout.Width(25), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
+                        {
+                            Selection.activeObject = l.Subject;
+                        }
+                    }
+                    GUILayout.Label(l.Content, GetStyle(l.LogType));
+                });
                 separator.Draw();
             }
             GUILayout.EndScrollView();
@@ -80,22 +83,17 @@ namespace Validatox.Editor
                     {
                         ClearLogs();
                     }
+                    if (GUILayout.Button("Hub", GUILayout.Width(100)))
+                    {
+                        GetWindow<ValidatoxHubEditorWindow>();
+                    }
                 }, GUILayout.ExpandWidth(true));
             }));
 
-            logsMeta = new List<Log.Metadata>();// File.Exists(Location) ? JsonConvert.DeserializeObject<List<Log.Metadata>>(File.ReadAllText(Location)) : new List<Log.Metadata>();
-            logs = new List<Log>();//logsMeta.ConvertAll(m => Log.FromMetadata(m));
+            logs = new List<Log>();
         }
 
-        private void ClearLogs()
-        {
-            logs.Clear();
-            logsMeta.Clear();
-            //if (File.Exists(Location))
-            //{
-            //    File.Delete(Location);
-            //}
-        }
+        private void ClearLogs() => logs.Clear();
 
         private GUIStyle GetStyle(LogType type)
         {
@@ -113,19 +111,17 @@ namespace Validatox.Editor
 
             public LogType LogType { get; private set; }
 
-            public Metadata Meta { get; private set; }
+            public UnityEngine.Object Subject { get; private set; }
 
-            public Log(LogType type, string message)
+            public Log(LogType type, string message, UnityEngine.Object subject)
             {
                 var iconName = GetIconContent(type);
                 LogType = type;
+                Subject = subject;
                 Content = string.IsNullOrEmpty(iconName)
                     ? new GUIContent(message)
                     : EditorGUIUtility.TrTextContentWithIcon(message, GetIconContent(type));
-                Meta = new Metadata(iconName, message, type.ToString());
             }
-
-            public static Log FromMetadata(Metadata metadata) => new Log(Enum.Parse<LogType>(metadata.LogType), metadata.Message);
 
             private string GetIconContent(LogType type)
             {
@@ -135,26 +131,6 @@ namespace Validatox.Editor
                     LogType.Assert => "winbtn_mac_max",
                     _ => string.Empty
                 };
-            }
-
-            [Serializable]
-            public class Metadata
-            {
-                [JsonProperty("icon_name")]
-                public string Icon { get; private set; }
-
-                [JsonProperty("message")]
-                public string Message { get; private set; }
-
-                [JsonProperty("log_type")]
-                public string LogType { get; private set; }
-
-                public Metadata(string icon, string message, string logType)
-                {
-                    Icon = icon;
-                    Message = message;
-                    LogType = logType;
-                }
             }
         }
     }

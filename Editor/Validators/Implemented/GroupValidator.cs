@@ -26,10 +26,7 @@ namespace Validatox.Editor.Validators
             {
                 var v = validators[i];
                 if (!v) continue;
-                var res = v.Validate(p =>
-                {
-                    progress?.Invoke(p.At(name).Doing(v.name + ": " + p.Description).WithProgress((i + p.ProgressValue) / validators.Count));
-                });
+                var res = v.Validate(p => progress?.Invoke(p.At(name).Doing(v.name + ": " + p.Description).WithProgress((i + p.ProgressValue) / validators.Count)));
                 if (res is not null && res.Failures.Count > 0)
                 {
                     failures.AddRange(res.Failures);

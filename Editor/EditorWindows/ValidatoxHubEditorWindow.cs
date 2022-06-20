@@ -102,7 +102,11 @@ namespace Validatox.Editor
             guardValidator = overrideGuard;
         }
 
-        private void RefreshParsedValidators() => paresedValidators = ValidatoxTools.GetAllBehavioursInAsset<Validator>();
+        private void RefreshParsedValidators()
+        {
+            paresedValidators = ValidatoxTools.GetAllBehavioursInAsset<Validator>(string.Empty, p => EditorUtility.DisplayProgressBar("Loading", "Retrieving validators assets...", p));
+            EditorUtility.ClearProgressBar();
+        }
 
         #region Drawing
 
@@ -136,7 +140,6 @@ namespace Validatox.Editor
                             AssetDatabase.DeleteAssets((from a in validators select AssetDatabase.GetAssetPath(a)).ToArray(), failed);
                             ShowNotification(new GUIContent($"Successfully deleted {validators.Count - failed.Count}/{validators.Count}"), 0.5F);
                         }
-                        GUIUtility.ExitGUI();
                     }
 
                     EditorGUI.EndDisabledGroup();
@@ -163,6 +166,7 @@ namespace Validatox.Editor
 
         private void DrawValidatorAsset(Validator validatorBase)
         {
+            if (!validatorBase) return;
             VerticalGroup(() =>
             {
                 var content = EditorGUIUtility.ObjectContent(validatorBase, validatorBase.GetType());
@@ -215,17 +219,10 @@ namespace Validatox.Editor
                     {
                         if (GUILayout.Button(new GUIContent("Validate"), GUILayout.MaxWidth(100)))
                         {
-                            var res = validatorBase.Validate((progress) => EditorUtility.DisplayProgressBar(progress.Phase, progress.Description, progress.ProgressValue));
-                            var window = EditorWindow.GetWindow<ValidatoxLogEditorWindow>();
-                            if (res.Successful)
-                            {
-                                window.NotifyLog($"{validatorBase.name} -> <color=#55d971>Validation successful! <b>:D</b></color>", LogType.Assert);
-                            }
-                            else
-                            {
-                                window.NotifyLog($"{validatorBase.name} -> <color=#ed4e4e>Validation failed with {res.Failures.Count} errors</color>\nClick for more info\n", LogType.Error);
-                            }
+                            validatorBase.Validate((progress) => EditorUtility.DisplayProgressBar(progress.Phase, progress.Description, progress.ProgressValue));
                             EditorUtility.ClearProgressBar();
+                            GUIUtility.ExitGUI();
+                            //validatorBase.LogResult();
                         }
                     }
                     EditorGUI.BeginDisabledGroup(!hasResult);
@@ -288,6 +285,17 @@ namespace Validatox.Editor
 
                     GravitateEnd(() =>
                     {
+                        var content = EditorGUIUtility.TrIconContent("d_UnityEditor.ConsoleWindow@2x");
+                        content.tooltip = "Open Validatox logs";
+                        GUILayout.BeginHorizontal();
+                        Center(() =>
+                        {
+                            if (GUILayout.Button(content, GUILayout.Width(EditorGUIUtility.singleLineHeight * 2), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
+                            {
+                                GetWindow<ValidatoxLogEditorWindow>();
+                            }
+                        });
+                        GUILayout.EndHorizontal();
                         separator.Draw();
                         if (GUILayout.Button("Validate everything"))
                         {

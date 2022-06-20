@@ -16,7 +16,7 @@ namespace Validatox.Editor
         /// <param name="root"> </param>
         /// <param name="exclusion"> Folders name to exclude from the query </param>
         /// <returns> All <see cref="UnityEngine.Object"/> in the specified path </returns>
-        public static List<UnityEngine.Object> GetUnityObjectsAtPath(string path, params string[] exclusion)
+        public static List<UnityEngine.Object> GetUnityObjectsAtPath(string path, Action<float> progress = null, params string[] exclusion)
         {
             if (!Directory.Exists(path)) return new List<UnityEngine.Object>();
             var inAsset = path.Contains(Application.dataPath);
@@ -28,31 +28,26 @@ namespace Validatox.Editor
             var exclusionList = exclusion.ToList();
             var sel = new List<UnityEngine.Object>();
             var fileEntries = Directory.GetFiles(path);
-            foreach (var file in fileEntries)
+            var dirs = Directory.GetDirectories(path);
+
+            for (var i = 0; i < fileEntries.Length; i++)
             {
+                var file = fileEntries[i];
+                progress?.Invoke((float)i / fileEntries.Length);
                 var fileName = Path.GetFileName(file);
                 var asset = AssetDatabase.LoadMainAssetAtPath($"{path}{Path.DirectorySeparatorChar}{fileName}");
                 if (!asset) continue;
                 sel.Add(asset);
             }
-            var dirs = Directory.GetDirectories(path);
             foreach (var dir in dirs)
             {
                 var dirInfo = new DirectoryInfo(dir);
                 if (exclusionList.Contains(dirInfo.Name)) continue;
                 var localPath = $"{path}{Path.DirectorySeparatorChar}{dirInfo.Name}";
-                sel.AddRange(GetUnityObjectsAtPath(localPath));
+                sel.AddRange(GetUnityObjectsAtPath(localPath, progress));
             }
             return sel;
         }
-
-        /// <summary>
-        ///   <inheritdoc cref="GetAllBehaviours{T}(Type[], UnityEngine.Object[])"/>
-        /// </summary>
-        /// <typeparam name="T"> </typeparam>
-        /// <param name="objs"> </param>
-        /// <returns> </returns>
-        public static List<T> GetAllBehaviours<T>(params UnityEngine.Object[] objs) where T : class => GetAllBehaviours<T>(new Type[0], objs);
 
         /// <summary>
         ///   For each object:
@@ -68,7 +63,7 @@ namespace Validatox.Editor
         /// <typeparam name="T"> </typeparam>
         /// <param name="objs"> </param>
         /// <returns> </returns>
-        public static List<T> GetAllBehaviours<T>(Type[] exclusions, params UnityEngine.Object[] objs) where T : class
+        public static List<T> GetAllBehaviours<T>(IEnumerable<UnityEngine.Object> objs, params Type[] exclusions) where T : class
         {
             var behaviours = new List<T>();
             if (exclusions.Contains(typeof(T))) return behaviours;
@@ -94,15 +89,44 @@ namespace Validatox.Editor
             return behaviours;
         }
 
+        public static List<UnityEngine.Object> GetAllBehavioursObjects(IEnumerable<UnityEngine.Object> objs) => GetAllBehavioursObjects(new Type[0], objs);
+
+        public static List<UnityEngine.Object> GetAllBehavioursObjects(IEnumerable<Type> exclusions, IEnumerable<UnityEngine.Object> objs)
+        {
+            var behaviours = new List<UnityEngine.Object>();
+            if (exclusions.Contains(typeof(UnityEngine.Object))) return behaviours;
+            foreach (var obj in objs)
+            {
+                var type = obj.GetType();
+                if (type.IsSubclassOf(typeof(ScriptableObject)))
+                {
+                    if (exclusions.Contains(type)) continue;
+                    if (type.Equals(typeof(UnityEngine.Object)))
+                    {
+                        behaviours.Add(obj);
+                    }
+                    else if (obj is ScriptableObject so)
+                    {
+                        behaviours.Add(so);
+                    }
+                }
+                else if (obj is GameObject gObj)
+                {
+                    behaviours.AddRange(gObj.GetComponents<MonoBehaviour>());
+                }
+            }
+            return behaviours;
+        }
+
         /// <summary>
         /// </summary>
         /// <param name="root"> The root path to start searching from </param>
         /// <param name="exclusion"> Folders name to exclude from the query </param>
         /// <returns> All <see cref="UnityEngine.Object"/> in the Asset folder </returns>
-        public static List<UnityEngine.Object> GetUnityObjectsInAssets(string root = "", params string[] exclusion)
+        public static List<UnityEngine.Object> GetUnityObjectsInAssets(string root = "", Action<float> progress = null, params string[] exclusion)
         {
             var compositePath = string.IsNullOrWhiteSpace(root) ? Application.dataPath : $"{Application.dataPath}{Path.AltDirectorySeparatorChar}{root}";
-            return GetUnityObjectsAtPath(compositePath, exclusion);
+            return GetUnityObjectsAtPath(compositePath, progress, exclusion);
         }
 
         /// <summary>
@@ -111,7 +135,7 @@ namespace Validatox.Editor
         /// <typeparam name="T"> </typeparam>
         /// <param name="root"> </param>
         /// <returns> </returns>
-        public static List<T> GetAllBehavioursAtPath<T>(string path, params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(exclusions, GetUnityObjectsAtPath(path).ToArray());
+        public static List<T> GetAllBehavioursAtPath<T>(string path, Action<float> progress = null, params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(GetUnityObjectsAtPath(path, progress), exclusions);
 
         /// <summary>
         ///   Applied to all <see cref="UnityEngine."/> in the <i> Asset </i> folder. <inheritdoc cref="Gib.GetAllBehaviours{T}(UnityEngine.Object[])"/>
@@ -119,7 +143,7 @@ namespace Validatox.Editor
         /// <typeparam name="T"> </typeparam>
         /// <param name="root"> </param>
         /// <returns> </returns>
-        public static List<T> GetAllBehavioursInAsset<T>(string root = "", params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(exclusions, GetUnityObjectsInAssets(root).ToArray());
+        public static List<T> GetAllBehavioursInAsset<T>(string root = "", Action<float> progress = null, params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(GetUnityObjectsInAssets(root, progress), exclusions);
 
         /// <summary>
         ///   Execute an <see cref="Action"/> on all the <see cref="GameObject"/> in the specified scene
