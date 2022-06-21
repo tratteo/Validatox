@@ -23,6 +23,7 @@ namespace Validatox.Editor
         private enum Context
         { Groups, Validators, Guard }
 
+        private int a;
         private PurySeparator separator;
         private GUIStyle textStyle;
         private GUIStyle titleStyle;

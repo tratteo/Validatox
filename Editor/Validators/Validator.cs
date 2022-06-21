@@ -1,8 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Security.Cryptography;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
@@ -15,8 +12,6 @@ namespace Validatox.Editor.Validators
         [SerializeField, HideInInspector] private ValidationResult result;
         [SerializeField, HideInInspector] private bool hasResult;
         [SerializeField] private bool dirtyResult;
-        [SerializeField] private byte[] shaChecksum;
-        private SHA256 sha;
 
         public bool DirtyResult => dirtyResult;
 
@@ -36,7 +31,7 @@ namespace Validatox.Editor.Validators
             result = null;
             hasResult = false;
             dirtyResult = false;
-            SerializeValidation(this);
+            ForceSerialize(this);
         }
 
         public void LogResult()
@@ -66,10 +61,10 @@ namespace Validatox.Editor.Validators
             if (!CanValidate()) return new ValidationResult(res, DateTime.Now);
             ValidationStart();
             Validate(res, progress);
-            SerializeValidation(this);
-            ValidationEnd();
             hasResult = true;
             result = new ValidationResult(res, DateTime.Now);
+            ForceSerialize(this);
+            ValidationEnd();
             return result;
         }
 
@@ -95,23 +90,10 @@ namespace Validatox.Editor.Validators
         /// <summary>
         ///   Called when the <see cref="Validator"/> needs to be serialized
         /// </summary>
-        protected virtual void SerializeValidation(Validator dirty) => AssetDatabase.SaveAssetIfDirty(dirty);
-
-        private void OnValidate()
+        protected virtual void ForceSerialize(Validator dirty)
         {
-            AssetDatabase.SaveAssetIfDirty(this);
-            sha ??= SHA256.Create();
-            var currentRepr = sha.ComputeHash(File.ReadAllBytes(AssetDatabase.GetAssetPath(this)));
-            if (shaChecksum is null || shaChecksum.Length <= 0)
-            {
-                shaChecksum = currentRepr;
-            }
-            if (hasResult && !Enumerable.SequenceEqual(currentRepr, shaChecksum))
-            {
-                dirtyResult = true;
-                shaChecksum = currentRepr;
-                AssetDatabase.SaveAssetIfDirty(this);
-            }
+            EditorUtility.SetDirty(dirty);
+            AssetDatabase.SaveAssetIfDirty(dirty);
         }
     }
 }

@@ -12,7 +12,7 @@ namespace Validatox.Editor.Validators
     [CreateAssetMenu(menuName = "Validatox/Validation group", fileName = "validation_group")]
     public class GroupValidator : Validator
     {
-        [ExcludeSubtypes(typeof(GroupValidator), ExcludeSubclasses = true)]
+        [ExcludeSubtypes(typeof(GroupValidator), typeof(GuardValidator), ExcludeSubclasses = true)]
         [SerializeField] private List<Validator> validators;
 
         public IReadOnlyCollection<Validator> GetValidators() => validators is null ? new List<Validator>() : validators.FindAll(v => v);
