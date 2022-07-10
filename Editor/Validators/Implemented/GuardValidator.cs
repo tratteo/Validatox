@@ -71,7 +71,11 @@ namespace Validatox.Editor.Validators
                 {
                     var scene = scenesPaths[i];
                     progressVal.Doing("Validating scene: " + scene);
-                    ValidatoxTools.ExecuteForComponentsInScene<MonoBehaviour>(scene, m => failures.AddRange(Guard(m, m.gameObject, scene)));
+                    ValidatoxTools.ExecuteForComponentsInScene<MonoBehaviour>(scene, m =>
+                    {
+                        if (!m) return;
+                        failures.AddRange(Guard(m, m.gameObject, scene));
+                    });
                     progress?.Invoke(progressVal.WithProgress((float)count / totalLength));
                 }
                 Log($"Validated {(allScenes ? "all" : scenesPaths.Count)} scenes");
