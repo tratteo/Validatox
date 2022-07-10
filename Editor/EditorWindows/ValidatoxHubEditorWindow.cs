@@ -222,8 +222,8 @@ namespace Validatox.Editor
                         {
                             validatorBase.Validate((progress) => EditorUtility.DisplayProgressBar(progress.Phase, progress.Description, progress.ProgressValue));
                             EditorUtility.ClearProgressBar();
+                            validatorBase.LogResult();
                             GUIUtility.ExitGUI();
-                            //validatorBase.LogResult();
                         }
                     }
                     EditorGUI.BeginDisabledGroup(!hasResult);
