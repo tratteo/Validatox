@@ -67,7 +67,7 @@ namespace Validatox.Editor
             failureStyle = logStyle.Copy(s =>
             {
                 s.normal.textColor = Color.red;
-                s.fontSize = 14;
+                s.fontSize = 12;
             });
             successStyle = logStyle.Copy(s =>
             {

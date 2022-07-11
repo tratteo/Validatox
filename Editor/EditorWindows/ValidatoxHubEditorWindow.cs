@@ -21,7 +21,7 @@ namespace Validatox.Editor
         { Success, Failure, All }
 
         private enum Context
-        { Groups, Validators, Guard }
+        { Groups, Validators, Guard, All }
 
         private int a;
         private PurySeparator separator;
@@ -82,7 +82,7 @@ namespace Validatox.Editor
             {
                 s.imagePosition = ImagePosition.ImageLeft;
                 s.alignment = TextAnchor.MiddleLeft;
-                s.padding = new RectOffset(0, 0, 5, 5);
+                s.padding = new RectOffset(5, 5, 5, 5);
                 s.fontSize = 16;
                 s.normal.textColor = Color.white;
             });
@@ -198,10 +198,11 @@ namespace Validatox.Editor
                 }, GUILayout.ExpandWidth(false));
                 if (validatorBase is GroupValidator group)
                 {
+                    GUILayout.Space(10);
+                    var groupContent = EditorGUIUtility.TrTextContentWithIcon("Group of size: " + group.GetValidators().Count.ToString(), "d_GridLayoutGroup Icon");
                     HorizontalGroup(() =>
                     {
-                        GUILayout.Label("Size:", GUILayout.Width(40));
-                        GUILayout.Label(group.GetValidators().Count.ToString(), GUILayout.MaxWidth(250));
+                        GUILayout.Label(groupContent);
                     }, GUILayout.ExpandWidth(false));
                 }
                 GUILayout.Space(10);
@@ -255,10 +256,19 @@ namespace Validatox.Editor
                 var values = Enum.GetValues(typeof(Context));
                 foreach (var value in values)
                 {
-                    if (GUILayout.Button(value.ToString(), GUI.skin.button.Copy(s => s.margin = new RectOffset(10, 10, 10, 10))))
+                    var current = (Context)value;
+                    if (current != Context.Guard)
                     {
-                        context = (Context)value;
+                        if (GUILayout.Button(value.ToString(), GUI.skin.button.Copy(s => s.margin = new RectOffset(10, 10, 10, 10))))
+                        {
+                            context = (Context)value;
+                        }
                     }
+                }
+                separator.Draw();
+                if (GUILayout.Button(Context.Guard.ToString(), GUI.skin.button.Copy(s => s.margin = new RectOffset(10, 10, 10, 10))))
+                {
+                    context = Context.Guard;
                 }
                 GUILayout.Space(25);
                 GUILayout.Label("Filters", textStyle.Copy(s => s.alignment = TextAnchor.MiddleCenter), GUILayout.ExpandWidth(true));
@@ -266,15 +276,39 @@ namespace Validatox.Editor
                 VerticalGroup(() =>
                 {
                     GUILayout.Label("Status", textStyle.FontSize(12));
-                    validationFilter = (ValidationFilter)EditorGUILayout.EnumPopup(validationFilter, GUILayout.ExpandWidth(true));
+                    HorizontalGroup(() =>
+                    {
+                        validationFilter = (ValidationFilter)EditorGUILayout.EnumPopup(validationFilter, GUILayout.ExpandWidth(true));
+
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("TreeEditor.Trash"), GUILayout.Width(25), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
+                        {
+                            validationFilter = ValidationFilter.All;
+                        }
+                    });
+
                     if (validationFilter is ValidationFilter.All or ValidationFilter.Validated)
                     {
                         GUILayout.Space(5);
                         GUILayout.Label("Result", textStyle.FontSize(12));
-                        resultFilter = (ResultFilter)EditorGUILayout.EnumPopup(resultFilter, GUILayout.ExpandWidth(true));
+                        var clearContent = EditorGUIUtility.TrIconContent("d_TreeEditor.Trash");
+                        HorizontalGroup(() =>
+                        {
+                            resultFilter = (ResultFilter)EditorGUILayout.EnumPopup(resultFilter, GUILayout.ExpandWidth(true));
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("TreeEditor.Trash"), GUILayout.Width(25), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
+                            {
+                                resultFilter = ResultFilter.All;
+                            }
+                        });
                         GUILayout.Space(5);
                         GUILayout.Label("Dirty status", textStyle.FontSize(12));
-                        dirtyFilter = (DirtyFilter)EditorGUILayout.EnumPopup(dirtyFilter, GUILayout.ExpandWidth(true));
+                        HorizontalGroup(() =>
+                        {
+                            dirtyFilter = (DirtyFilter)EditorGUILayout.EnumPopup(dirtyFilter, GUILayout.ExpandWidth(true));
+                            if (GUILayout.Button(EditorGUIUtility.TrIconContent("TreeEditor.Trash"), GUILayout.Width(25), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
+                            {
+                                dirtyFilter = DirtyFilter.All;
+                            }
+                        });
                     }
                     separator.Draw();
                     if (GUILayout.Button("Clear"))
@@ -370,6 +404,10 @@ namespace Validatox.Editor
 
                 case Context.Guard:
                     validators = validators.FindAll(v => v is GuardValidator);
+                    break;
+
+                case Context.All:
+                    validators = validators.FindAll(v => v is not GuardValidator);
                     break;
 
                 default:
