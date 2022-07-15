@@ -3,3 +3,5 @@
   <br>
   <font size="40"> Unity reference validation made easy </font>
 </p>
+
+For scripting documentation, check out the wiki at: https://tratteo.gitbook.io/validatox/

@@ -121,11 +121,6 @@ namespace Validatox.Editor
                 if (context is Context.Guard)
                 {
                     guardValidator = EditorGUILayout.ObjectField("Override", guardValidator, typeof(GuardValidator), false) as GuardValidator;
-                    if (!guardValidator)
-                    {
-                        GUILayout.Label($"Using Validatox default {nameof(GuardValidator)} located in {ValidatoxManager.PackageEditorPath}", infoStyle);
-                        GUILayout.Space(5);
-                    }
                     ChangeGuardValidator(guardValidator);
                     EditorGUILayout.Space(10);
                 }

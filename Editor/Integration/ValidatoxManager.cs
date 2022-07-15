@@ -48,12 +48,12 @@ namespace Validatox.Editor
             var settings = ValidatoxSettings.Load();
             if (string.IsNullOrEmpty(settings.GuardValidatorGuid))
             {
-                var res = ValidatoxTools.GetAllBehavioursAtPath<GuardValidator>(PackageEditorPath);
+                var res = ValidatoxTools.GetAllBehavioursInAsset<GuardValidator>();
                 if (res.Count <= 0)
                 {
                     ValidatoxLogEditorWindow.NotifyLog($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder", LogType.Warning);
                     var guard = ScriptableObject.CreateInstance<GuardValidator>();
-                    AssetDatabase.CreateAsset(guard, $"{PackageEditorPath}{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
+                    AssetDatabase.CreateAsset(guard, $"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
                     return guard;
                 }
                 return res[0];
