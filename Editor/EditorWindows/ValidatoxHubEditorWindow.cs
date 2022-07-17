@@ -53,8 +53,8 @@ namespace Validatox.Editor
 
             separator = PurySeparator.Towards(Orientation.Horizontal).Thickness(1).Margin(new RectOffset(10, 10, 15, 15)).Colored(new Color(0.5F, 0.5F, 0.5F, 1)).Build();
 
-            var guid = ValidatoxSettings.Load().GuardValidatorGuid;
-            guardValidator = string.IsNullOrEmpty(guid) ? null : AssetDatabase.LoadAssetAtPath<GuardValidator>(AssetDatabase.GUIDToAssetPath(guid));
+            guardValidator = ValidatoxManager.LoadActiveGuard();
+
             RefreshParsedValidators();
             EditorApplication.projectChanged += RefreshParsedValidators;
 
@@ -143,7 +143,7 @@ namespace Validatox.Editor
                     {
                         if (GUILayout.Button("Validate", GUILayout.MaxWidth(100)))
                         {
-                            ValidatoxManager.Validate();
+                            ValidatoxManager.ValidateGuarded();
                             GUIUtility.ExitGUI();
                         }
                     }
@@ -387,6 +387,7 @@ namespace Validatox.Editor
         private List<Validator> GetValidatorsByContext()
         {
             var validators = paresedValidators;
+            if (validators is null) return new List<Validator>();
             switch (context)
             {
                 case Context.Groups:

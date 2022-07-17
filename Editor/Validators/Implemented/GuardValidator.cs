@@ -149,9 +149,11 @@ namespace Validatox.Editor.Validators
             for (var i = 0; i < fields.Length; i++)
             {
                 var field = fields[i];
+                var value = field.GetValue(behaviour);
                 if (Attribute.GetCustomAttribute(field, typeof(GuardAttribute)) is GuardAttribute guarded)
                 {
-                    if (field.GetValue(behaviour).IsNullOrDefault())
+                    if (value is not null && value.GetType().IsValueType) continue;
+                    if (value.IsNullOrDefault())
                     {
                         failures.Add(BuildFailure(guarded, field, behaviour.GetType(), $"{path}/{parentObj.name}", EditorUtility.IsPersistent(parentObj)));
                     }
