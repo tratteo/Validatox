@@ -23,7 +23,6 @@ namespace Validatox.Editor
         private enum Context
         { Groups, Validators, Guard, All }
 
-        private int a;
         private PurySeparator separator;
         private GUIStyle textStyle;
         private GUIStyle titleStyle;
@@ -35,7 +34,6 @@ namespace Validatox.Editor
         private DirtyFilter dirtyFilter;
         private ResultFilter resultFilter;
 
-        private GuardValidator guardValidator;
         private List<Validator> paresedValidators;
 
         protected override void Layout(List<PurySidebar> sidebars)
@@ -52,8 +50,6 @@ namespace Validatox.Editor
             BuildStyles();
 
             separator = PurySeparator.Towards(Orientation.Horizontal).Thickness(1).Margin(new RectOffset(10, 10, 15, 15)).Colored(new Color(0.5F, 0.5F, 0.5F, 1)).Build();
-
-            guardValidator = ValidatoxManager.LoadActiveGuard();
 
             RefreshParsedValidators();
             EditorApplication.projectChanged += RefreshParsedValidators;
@@ -100,7 +96,6 @@ namespace Validatox.Editor
             {
                 ValidatoxSettings.Edit(s => s.GuardValidatorGuid = string.Empty);
             }
-            guardValidator = overrideGuard;
         }
 
         private void RefreshParsedValidators()
@@ -113,6 +108,7 @@ namespace Validatox.Editor
 
         protected override void DrawContent()
         {
+            var guarded = ValidatoxManager.LoadActiveGuard();
             VerticalGroup(() =>
             {
                 GUILayout.Label(context.ToString(), titleStyle, GUILayout.ExpandWidth(true));
@@ -120,9 +116,19 @@ namespace Validatox.Editor
 
                 if (context is Context.Guard)
                 {
-                    guardValidator = EditorGUILayout.ObjectField("Override", guardValidator, typeof(GuardValidator), false) as GuardValidator;
-                    ChangeGuardValidator(guardValidator);
-                    EditorGUILayout.Space(10);
+                    if (guarded)
+                    {
+                        EditorGUILayout.LabelField("GuardValidator", guarded.name);
+                        EditorGUILayout.Space(10);
+                    }
+                    else
+                    {
+                        if (GUILayout.Button("Create", GUILayout.Width(200)))
+                        {
+                            ValidatoxSettings.Edit(s => s.GuardValidatorGuid = string.Empty);
+                            ValidatoxManager.LoadActiveGuard();
+                        }
+                    }
                 }
 
                 HorizontalGroup(() =>
@@ -141,11 +147,13 @@ namespace Validatox.Editor
                     EditorGUI.EndDisabledGroup();
                     if (context is Context.Guard)
                     {
+                        EditorGUI.BeginDisabledGroup(!guarded);
                         if (GUILayout.Button("Validate", GUILayout.MaxWidth(100)))
                         {
                             ValidatoxManager.ValidateGuarded();
                             GUIUtility.ExitGUI();
                         }
+                        EditorGUI.EndDisabledGroup();
                     }
                 });
 
@@ -205,7 +213,7 @@ namespace Validatox.Editor
                 {
                     if (validatorBase is GuardValidator guard)
                     {
-                        EditorGUI.BeginDisabledGroup(guard == guardValidator);
+                        EditorGUI.BeginDisabledGroup(AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(guard)).ToString() == ValidatoxSettings.Load().GuardValidatorGuid);
                         if (GUILayout.Button(new GUIContent("Assign"), GUILayout.MaxWidth(100)))
                         {
                             ChangeGuardValidator(guard);

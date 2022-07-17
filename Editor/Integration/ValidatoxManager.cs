@@ -46,28 +46,26 @@ namespace Validatox.Editor
         public static GuardValidator LoadActiveGuard()
         {
             var settings = ValidatoxSettings.Load();
-            if (string.IsNullOrEmpty(settings.GuardValidatorGuid))
+            var loaded = AssetDatabase.LoadAssetAtPath<GuardValidator>(AssetDatabase.GUIDToAssetPath(settings.GuardValidatorGuid));
+            if (loaded)
             {
-                var res = ValidatoxTools.GetAllBehavioursInAsset<GuardValidator>();
-                GuardValidator val = null;
-                if (res.Count <= 0)
-                {
-                    ValidatoxLogEditorWindow.NotifyLog($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder", LogType.Warning);
-                    val = ScriptableObject.CreateInstance<GuardValidator>();
-                    Directory.CreateDirectory($"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox");
-                    AssetDatabase.CreateAsset(val, $"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
-                }
-                else
-                {
-                    val = res[0];
-                    settings.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(val)).ToString();
-                    ValidatoxSettings.Save(settings);
-                }
-                return val;
+                return loaded;
             }
             else
             {
-                return AssetDatabase.LoadAssetAtPath<GuardValidator>(AssetDatabase.GUIDToAssetPath(settings.GuardValidatorGuid));
+                var res = ValidatoxTools.GetAllBehavioursInAsset<GuardValidator>();
+                if (res.Count <= 0)
+                {
+                    ValidatoxLogEditorWindow.NotifyLog($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder", LogType.Warning);
+                    var val = ScriptableObject.CreateInstance<GuardValidator>();
+                    Directory.CreateDirectory($"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox");
+                    AssetDatabase.CreateAsset(val, $"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
+                    settings.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(val)).ToString();
+                    return val;
+                }
+                settings.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(res[0])).ToString();
+                ValidatoxSettings.Save(settings);
+                return res[0];
             }
         }
 
