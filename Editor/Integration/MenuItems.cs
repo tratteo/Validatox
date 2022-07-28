@@ -10,13 +10,13 @@ namespace Validatox.Editor
         //    EditorWindow.GetWindow(typeof(CreditsEditorWindow)).titleContent = new GUIContent("Validatox");
         //}
 
-        [MenuItem("Window/Validatox Hub", false, 0)]
+        [MenuItem("Window/Validatox/Hub", false, 0)]
         internal static void Hub()
         {
             EditorWindow.GetWindow(typeof(ValidatoxHubEditorWindow));
         }
 
-        [MenuItem("Window/Validatox Log", false, 0)]
+        [MenuItem("Window/Validatox/Log", false, 0)]
         internal static void Log()
         {
             EditorWindow.GetWindow(typeof(ValidatoxLogEditorWindow));
