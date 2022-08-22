@@ -49,7 +49,7 @@ namespace Validatox.Editor
 
         protected override void Layout(List<PurySidebar> sidebars)
         {
-            titleContent = new GUIContent("Log", Resources.Icon, ":D");
+            titleContent = new GUIContent("Log", Resources.Icon(), ":D");
             ContentOrientation = Orientation.Vertical;
             ContentStyle = string.Empty;
             minSize = new Vector2(1024, 256);

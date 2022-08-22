@@ -10,9 +10,6 @@ namespace Validatox.Editor
 {
     public static class ValidatoxManager
     {
-        public const string PackagePath = "Packages/com.siamango.validatox";
-        public const string PackageEditorPath = "Packages/com.siamango.validatox/Editor";
-
         /// <summary>
         ///   Validate all the fields marked with the <see cref="Meta.GuardAttribute"/> using the default <see cref="GuardValidator"/>
         ///   embedded in GibFrame. In order to override the default validator, create a new <see cref="GuardValidator"/> in the <i>
@@ -61,6 +58,7 @@ namespace Validatox.Editor
                     Directory.CreateDirectory($"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox");
                     AssetDatabase.CreateAsset(val, $"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
                     settings.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(val)).ToString();
+                    ValidatoxSettings.Save(settings);
                     return val;
                 }
                 settings.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(res[0])).ToString();

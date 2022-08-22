@@ -38,7 +38,7 @@ namespace Validatox.Editor
 
         protected override void Layout(List<PurySidebar> sidebars)
         {
-            titleContent = new GUIContent("Validatox Hub", Resources.Icon, "Get validated :D");
+            titleContent = new GUIContent("Hub", Resources.Icon(), "Get validated :D");
             autoRepaintOnSceneChange = true;
             minSize = new Vector2(1024, 512);
 
@@ -54,7 +54,7 @@ namespace Validatox.Editor
             RefreshParsedValidators();
             EditorApplication.projectChanged += RefreshParsedValidators;
 
-            sidebars.Add(PurySidebar.Factory().Left(200).Style("window").Draw(s => DrawSidebar()));
+            sidebars.Add(PurySidebar.Factory().Left(200).Style("window").Draw(DrawSidebar));
         }
 
         private void BuildStyles()
@@ -252,7 +252,7 @@ namespace Validatox.Editor
             }, GUIStyle.none.Copy(s => s.margin = new RectOffset(10, 10, 10, 10)), GUILayout.ExpandWidth(true));
         }
 
-        private void DrawSidebar()
+        private void DrawSidebar(PurySidebar sidebar)
         {
             VerticalGroup(() =>
             {
