@@ -1,5 +1,5 @@
 {
-  "name": "com.siamango.validatox",
+  "name": "com.trat.validatox",
   "version": "1.2.0",
   "displayName": "Validatox",
   "description": "Unity reference validation made easy.",
@@ -9,7 +9,10 @@
   ],
   "author": {
     "name": "Siamango",
-    "url": "https://github.com/Siamango/"
+    "url": "https://github.com/Tratteo/"
   },
-  "samples": []
+  "samples": [],
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.0.2"
+  }
 }

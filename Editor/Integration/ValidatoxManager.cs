@@ -55,8 +55,8 @@ namespace Validatox.Editor
                 {
                     ValidatoxLogEditorWindow.NotifyLog($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder", LogType.Warning);
                     var val = ScriptableObject.CreateInstance<GuardValidator>();
-                    Directory.CreateDirectory($"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox");
-                    AssetDatabase.CreateAsset(val, $"Assets{Path.AltDirectorySeparatorChar}Siamango{Path.AltDirectorySeparatorChar}Validatox{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
+                    Directory.CreateDirectory($"Assets{Path.AltDirectorySeparatorChar}{Resources.Author}{Path.AltDirectorySeparatorChar}{Resources.Name}");
+                    AssetDatabase.CreateAsset(val, $"Assets{Path.AltDirectorySeparatorChar}{Resources.Author}{Path.AltDirectorySeparatorChar}{Resources.Name}{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");
                     settings.GuardValidatorGuid = AssetDatabase.GUIDFromAssetPath(AssetDatabase.GetAssetPath(val)).ToString();
                     ValidatoxSettings.Save(settings);
                     return val;

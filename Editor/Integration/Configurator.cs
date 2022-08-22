@@ -1,7 +1,7 @@
-﻿using UnityEditor;
+﻿using System.Linq;
+using UnityEditor;
 using UnityEditor.PackageManager;
 using UnityEditor.PackageManager.Requests;
-using UnityEngine;
 
 namespace Validatox.Editor
 {
@@ -22,8 +22,7 @@ namespace Validatox.Editor
         {
             if (request.IsCompleted)
             {
-                IsPackage = request.Status == StatusCode.Success;
-                Debug.Log("Environment: " + (IsPackage ? "Package" : "Asset"));
+                IsPackage = IsPackage = request.Result.FirstOrDefault(p => p.name.Equals(Resources.PackageId)) is not null;
                 EditorApplication.update -= EnvironmentSetup;
             }
         }
