@@ -178,7 +178,7 @@ namespace Validatox.Editor
                 GUILayout.Label(content, textStyle, GUILayout.MaxHeight(EditorGUIUtility.singleLineHeight * 2));
                 var hasResult = validatorBase.TryGetCachedResult(out var result);
                 GUILayout.Space(5);
-                if (validatorBase.DirtyResult)
+                if (validatorBase.DirtyResult && hasResult)
                 {
                     GUILayout.Label(EditorGUIUtility.TrTextContentWithIcon(" Asset may have changed since last validation", "d_console.warnicon.sml"), infoStyle, GUILayout.ExpandWidth(false));
                     GUILayout.Space(5);

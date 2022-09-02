@@ -17,7 +17,7 @@ namespace Validatox.Editor
         {
             serializedObject.Update();
             DrawProperties();
-            if (serializedObject.ApplyModifiedProperties())
+            if (serializedObject.ApplyModifiedProperties() && validator.TryGetCachedResult(out _))
             {
                 serializedObject.Update();
                 serializedObject.FindProperty("dirtyResult").boolValue = true;
