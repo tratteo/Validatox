@@ -1,8 +1,8 @@
 {
-  "name": "com.trat.validatox",
-  "version": "1.2.0",
+  "name": "com.tratteo.validatox",
+  "version": "1.2.3",
   "displayName": "Validatox",
-  "description": "Unity reference validation made easy.",
+  "description": "Build the unbreakable",
   "keywords": [
     "plugin",
     "utils"
