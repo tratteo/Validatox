@@ -1,6 +1,8 @@
-﻿using System.Linq;
-using System.Text;
+﻿using System.Text;
+using UnityEditor;
 using UnityEngine;
+using Validatox.Editor.Extern;
+using Validatox.Editor.Validators.Fix;
 
 namespace Validatox.Editor.Validators
 {
@@ -10,39 +12,53 @@ namespace Validatox.Editor.Validators
         [SerializeField] private Validator validator;
         [SerializeField] private int code;
         [SerializeField] private string reason;
-        [SerializeField] private string[] causersNames;
+        [SerializeField] private string causerInstanceId;
+        [SerializeField] private SerializableType fixType;
+        [SerializeField] private object[] fixArgs;
+        private GlobalObjectId? causerGlobalId;
 
         public Validator Validator => validator;
+
+        public SerializableType FixType => fixType;
 
         public int Code => code;
 
         public string Reason => reason;
 
-        public string[] Causers => causersNames;
-
-        private ValidationFailure(Validator validator)
+        private ValidationFailure(Validator validator, int causer)
         {
             this.validator = validator;
             code = 0;
             reason = string.Empty;
-            causersNames = new string[0];
+            causerInstanceId = GlobalObjectId.GetGlobalObjectIdSlow(causer).ToString();
+            fixType = null;
         }
 
-        public static ValidatorFailureBuilder Of(Validator validator) => new ValidatorFailureBuilder(validator);
+        public static ValidatorFailureBuilder Of(Validator validator, UnityEngine.Object causer)
+        {
+            GlobalObjectId.GetGlobalObjectIdSlow(causer.GetInstanceID());
+            return new ValidatorFailureBuilder(validator, causer.GetInstanceID());
+        }
+
+        public ValidationFix InstantiateFix() => ValidationFix.InstantiateFix(FixType.GetType(), validator, GetCauserObject(), fixArgs ?? new object[] { });
+
+        public UnityEngine.Object GetCauserObject()
+        {
+            if (causerGlobalId == null)
+            {
+                if (!GlobalObjectId.TryParse(causerInstanceId, out var id)) return null;
+                causerGlobalId = id;
+            }
+            return GlobalObjectId.GlobalObjectIdentifierToObjectSlow((GlobalObjectId)causerGlobalId);
+        }
 
         public override string ToString()
         {
             var builder = new StringBuilder($"{Validator} failure [{Code}]: {Reason}");
-            if (Causers.Length > 0) builder.Append(". Caused by ");
-            for (var i = 0; i < Causers.Length; i++)
+            var causer = GetCauserObject();
+            if (causer != null)
             {
-                var o = Causers[i];
-
-                builder.Append(o);
-                if (i < Causers.Length - 1)
-                {
-                    builder.Append(" | ");
-                }
+                if (causer.name.Length > 0) builder.Append(". Caused by ").Append(causer.name);
             }
             return builder.ToString();
         }
@@ -51,9 +67,9 @@ namespace Validatox.Editor.Validators
         {
             private readonly ValidationFailure failure;
 
-            public ValidatorFailureBuilder(Validator validator)
+            public ValidatorFailureBuilder(Validator validator, int causer)
             {
-                failure = new ValidationFailure(validator);
+                failure = new ValidationFailure(validator, causer);
             }
 
             public static implicit operator ValidationFailure(ValidatorFailureBuilder builder) => builder.Build();
@@ -70,9 +86,10 @@ namespace Validatox.Editor.Validators
                 return this;
             }
 
-            public ValidatorFailureBuilder By(params object[] causers)
+            public ValidatorFailureBuilder WithFix<T>(params object[] args) where T : ValidationFix
             {
-                failure.causersNames = (from c in causers select c.ToString()).ToArray();
+                failure.fixType = typeof(T);
+                failure.fixArgs = args;
                 return this;
             }
 

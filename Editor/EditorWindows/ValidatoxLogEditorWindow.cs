@@ -21,7 +21,7 @@ namespace Validatox.Editor
         public static void NotifyLog(string log, LogType type = LogType.Log, UnityEngine.Object subject = null)
         {
             var window = GetWindow<ValidatoxLogEditorWindow>(null, false);
-            if (window is null) return;
+            if (window == null) return;
             var logItem = new Log(type, DateTime.Now.ToLongTimeString() + " | " + log, subject);
             window.logs.Add(logItem);
         }

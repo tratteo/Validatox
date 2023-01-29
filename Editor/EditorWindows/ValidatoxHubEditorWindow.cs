@@ -54,7 +54,7 @@ namespace Validatox.Editor
             RefreshParsedValidators();
             EditorApplication.projectChanged += RefreshParsedValidators;
 
-            sidebars.Add(PurySidebar.Factory().Left(200).Style("window").Draw(DrawSidebar));
+            sidebars.Add(PurySidebar.Factory().Left(160).Style("window").Draw(DrawSidebar));
         }
 
         private void BuildStyles()

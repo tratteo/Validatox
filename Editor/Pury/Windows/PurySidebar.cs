@@ -33,6 +33,7 @@ namespace Pury.Editor
         public virtual void Draw()
         {
             var style = GetCachedStyle();
+            var skin = GUI.skin;
             switch (Position)
             {
                 case Position.Top:
@@ -48,6 +49,7 @@ namespace Pury.Editor
                     break;
 
                 case Position.Left:
+
                     GUILayout.BeginVertical(style, GUILayout.ExpandHeight(true), GUILayout.Width(Width));
                     drawJob?.Invoke(this);
                     GUILayout.EndVertical();

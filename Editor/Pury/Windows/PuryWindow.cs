@@ -9,6 +9,8 @@ namespace Pury.Editor
     {
         private Dictionary<Position, List<PurySidebar>> sidebars;
 
+        private Vector2 contentScrollPos = Vector2.zero;
+
         public Orientation SidebarPriority { get; protected set; }
 
         public Orientation ContentOrientation { get; protected set; }
@@ -189,6 +191,7 @@ namespace Pury.Editor
             switch (SidebarPriority)
             {
                 case Orientation.Horizontal:
+                    contentScrollPos = GUILayout.BeginScrollView(contentScrollPos, false, false, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     GUILayout.BeginVertical(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     RenderSidebarsRelative(Position.Top);
                     GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -198,9 +201,11 @@ namespace Pury.Editor
                     GUILayout.EndHorizontal();
                     RenderSidebarsRelative(Position.Bottom);
                     GUILayout.EndVertical();
+                    GUILayout.EndScrollView();
                     break;
 
                 case Orientation.Vertical:
+                    contentScrollPos = GUILayout.BeginScrollView(contentScrollPos, false, false, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     GUILayout.BeginHorizontal(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     RenderSidebarsRelative(Position.Left);
                     GUILayout.BeginVertical(GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
@@ -210,6 +215,7 @@ namespace Pury.Editor
                     GUILayout.EndVertical();
                     RenderSidebarsRelative(Position.Right);
                     GUILayout.EndHorizontal();
+                    GUILayout.EndScrollView();
                     break;
 
                 default:

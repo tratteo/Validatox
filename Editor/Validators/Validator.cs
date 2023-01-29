@@ -34,6 +34,8 @@ namespace Validatox.Editor.Validators
             ForceSerialize(this);
         }
 
+        public void MarkDirtyValidation() => dirtyResult = true;
+
         public void LogResult()
         {
             if (!hasResult) return;

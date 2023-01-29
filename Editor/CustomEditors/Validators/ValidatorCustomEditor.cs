@@ -1,6 +1,7 @@
 ﻿using UnityEditor;
 using UnityEngine;
 using Validatox.Editor.Validators;
+using Validatox.Editor.Validators.Fix;
 
 namespace Validatox.Editor
 {
@@ -72,7 +73,25 @@ namespace Validatox.Editor
                     scrollPos = EditorGUILayout.BeginScrollView(scrollPos, GUILayout.ExpandWidth(true), GUILayout.ExpandHeight(true));
                     foreach (var failure in result.Failures)
                     {
-                        EditorGUILayout.LabelField(new GUIContent(failure.ToString()), labelStyle);
+                        if (failure.FixType == null || failure.FixType.GetType() == null)
+                        {
+                            EditorGUILayout.LabelField(new GUIContent(failure.ToString()), labelStyle);
+                        }
+                        else
+                        {
+                            EditorGUILayout.BeginHorizontal();
+                            if (GUILayout.Button("Fix", GUILayout.Width(50)))
+                            {
+                                ValidationFixWindow.Open(failure.InstantiateFix(),
+                                    new ValidationFixWindowOptions()
+                                    {
+                                        Position = GUIUtility.GUIToScreenPoint(Event.current.mousePosition)
+                                    });
+                            }
+                            EditorGUILayout.LabelField(new GUIContent(failure.ToString()), labelStyle);
+
+                            EditorGUILayout.EndHorizontal();
+                        }
                         EditorGUILayout.Space(5);
                     }
                     EditorGUILayout.EndScrollView();

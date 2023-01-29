@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using Validatox.Editor.Validators.Fix;
 using Validatox.Meta;
 using Validatox.Serializable;
 
@@ -112,7 +113,7 @@ namespace Validatox.Editor.Validators
 
         private void Log(string message, LogType type = LogType.Log) => ValidatoxLogEditorWindow.NotifyLog($"<b>[GuardedValidator]</b> -> {message}", type);
 
-        private ValidationFailure BuildFailure(GuardAttribute guarded, FieldInfo field, Type parentClass, string path, bool isAsset)
+        private ValidationFailure BuildFailure(GuardAttribute guarded, FieldInfo field, UnityEngine.Object parent, Type classType, string path, bool isAsset)
         {
             var logBuilder = new StringBuilder();
             if (isAsset)
@@ -123,25 +124,24 @@ namespace Validatox.Editor.Validators
             {
                 logBuilder.Append("<color=magenta><b>Scene Object</b></color> => ");
             }
-
             switch (guarded.SeverityType)
             {
                 case GuardAttribute.Severity.Info:
-                    logBuilder.AppendFormat("<b>{0}</b> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, parentClass, path);
+                    logBuilder.AppendFormat("<b>{0}</b> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
                     break;
 
                 case GuardAttribute.Severity.Warning:
-                    logBuilder.AppendFormat("<color=yellow><b>{0}</b></color> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, parentClass, path);
+                    logBuilder.AppendFormat("<color=yellow><b>{0}</b></color> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
                     break;
 
                 case GuardAttribute.Severity.Error:
-                    logBuilder.AppendFormat("<color=red><b>{0}</b></color> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, parentClass, path);
+                    logBuilder.AppendFormat("<color=red><b>{0}</b></color> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
                     break;
             }
-            return ValidationFailure.Of(this).Reason(logBuilder.ToString()).By(path, field.Name);
+            return ValidationFailure.Of(this, parent).WithFix<MissingReferenceFix>(field.Name).Reason(logBuilder.ToString());
         }
 
-        private List<ValidationFailure> Guard(object behaviour, UnityEngine.Object parentObj, string path)
+        private List<ValidationFailure> Guard(UnityEngine.Object behaviour, UnityEngine.Object parentObj, string path)
         {
             var failures = new List<ValidationFailure>();
             if (behaviour is null) return failures;
@@ -155,7 +155,7 @@ namespace Validatox.Editor.Validators
                     if (value is not null && value.GetType().IsValueType) continue;
                     if (value.IsNullOrDefault())
                     {
-                        failures.Add(BuildFailure(guarded, field, behaviour.GetType(), $"{path}/{parentObj.name}", EditorUtility.IsPersistent(parentObj)));
+                        failures.Add(BuildFailure(guarded, field, behaviour, behaviour.GetType(), $"{path}/{parentObj.name}", EditorUtility.IsPersistent(parentObj)));
                     }
                 }
             }
