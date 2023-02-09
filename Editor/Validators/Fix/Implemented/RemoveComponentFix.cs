@@ -14,6 +14,8 @@ namespace Validatox.Editor.Validators.Fix
             ContextlessFix = true;
         }
 
+        public override string GetLabel() => $"{nameof(RemoveComponentFix<T>)}<{typeof(T).Name}>";
+
         protected override bool Fix(SerializedObject serializedObject)
         {
             var obj = serializedObject.targetObject;

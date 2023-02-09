@@ -26,7 +26,7 @@ namespace Validatox.Editor
 
         private Log(object content)
         {
-            ActionIconKey = "d_ViewToolZoom";
+            ActionIconKey = "d_GameObject Icon";
             Content = content.ToString();
             LogType = LogType.Log;
             subject = null;
@@ -133,7 +133,7 @@ namespace Validatox.Editor
                 var failure = failures.ElementAt(i);
                 var logItem = Log.Create(failure)
                     .Type(LogType.Log)
-                    .ActionIconKey("d_GameObject Icon")
+                    .ActionIconKey("d_ViewToolZoom")
                     .WithSubject(failure, failure.ScenePath);
                 logs.Add(logItem.Build());
             }
@@ -164,13 +164,15 @@ namespace Validatox.Editor
                         a.fontSize = logStyle.fontSize + 2;
                         var c = GetStyle(l.Title.LogType).normal.textColor;
                         a.onFocused.textColor = c;
+                        a.focused.textColor = c;
+                        a.onHover.textColor = c;
                         a.onNormal.textColor = c;
                     });
 
                     EditorGUILayout.BeginHorizontal();
                     if (l.Title.TryGetSubject(out var subject))
                     {
-                        if (GUILayout.Button(EditorGUIUtility.TrIconContent("d_ViewToolZoom"),
+                        if (GUILayout.Button(EditorGUIUtility.TrIconContent(l.Title.ActionIconKey),
                                       GUILayout.Width(25),
                                       GUILayout.Height(EditorGUIUtility.singleLineHeight)))
                         {

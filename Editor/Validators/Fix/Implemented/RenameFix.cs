@@ -8,6 +8,7 @@ namespace Validatox.Editor.Validators.Fix
     public class RenameFix : ValidationFix
     {
         private string newName;
+        private string contextlessName;
 
         public RenameFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
@@ -18,31 +19,30 @@ namespace Validatox.Editor.Validators.Fix
             if (args.Length > 0 && args[0] is string name)
             {
                 newName = name;
+                contextlessName = name;
                 ContextlessFix = true;
             }
         }
 
-        public override string ToString()
-        {
-            return $"{base.ToString()}: {newName}";
-        }
+        public override string GetLabel() => ContextlessFix ? $"{nameof(RenameFix)} > {contextlessName}" : nameof(RenameFix);
 
         protected override bool Fix(SerializedObject serializedObject)
         {
+            newName = contextlessName != null ? contextlessName : newName;
             if (IsSceneObject)
             {
-                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(serializedObject.targetObject), newName);
+                serializedObject.targetObject.name = newName;
             }
             else
             {
-                serializedObject.targetObject.name = newName;
+                AssetDatabase.RenameAsset(AssetDatabase.GetAssetPath(serializedObject.targetObject), newName);
             }
             return true;
         }
 
         protected override void EditorRender(ValidationFixWindow window)
         {
-            EditorGUI.BeginChangeCheck();
+            base.EditorRender(window);
             newName = EditorGUILayout.TextField("Rename", newName);
         }
     }

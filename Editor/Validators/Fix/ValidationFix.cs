@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Pury.Editor;
+using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -16,11 +17,18 @@ namespace Validatox.Editor.Validators.Fix
 
         private string homeScene;
         private string activeSceneCache;
+        private GUIStyle titleStyle;
+        private PurySeparator separator;
 
         /// <summary>
         ///   Determine the window style for the fix
         /// </summary>
         public OpenStyle Style { get; protected set; } = OpenStyle.Popup;
+
+        /// <summary>
+        ///   Whether the current context (Scene) is the scene of the subject. Always true if the object is an asset
+        /// </summary>
+        public bool IsInContext { get; private set; }
 
         /// <summary>
         ///   The title of the window
@@ -58,8 +66,10 @@ namespace Validatox.Editor.Validators.Fix
             Failure = failure;
             Args = args;
             failure.TryGetSubject(out var subject);
-            IsSceneObject = subject == null && failure.ScenePath != null;
+            IsSceneObject = failure.ScenePath != null;
+            IsInContext = !IsSceneObject || SceneManager.GetActiveScene().path == failure.ScenePath;
             Title = $"Fix for {(subject ? subject.name : failure.ScenePath)}";
+            separator = PurySeparator.Towards(Orientation.Horizontal).Thickness(1).Colored(new Color(0.5F, 0.5F, 0.5F, 1)).Margin(new RectOffset(5, 5, 5, 5));
         }
 
         /// <summary>
@@ -72,7 +82,7 @@ namespace Validatox.Editor.Validators.Fix
         public static ValidationFix InstantiateFix(Type type, ValidationFailure failure, params object[] args) =>
             (ValidationFix)Activator.CreateInstance(type, new object[] { failure, args });
 
-        public override string ToString() => GetType().Name;
+        public override string ToString() => GetLabel();
 
         /// <summary>
         ///   Render the fix content
@@ -85,6 +95,7 @@ namespace Validatox.Editor.Validators.Fix
             var activeScene = SceneManager.GetActiveScene();
             if (IsSceneObject && activeScene.path != Failure.ScenePath)
             {
+                IsInContext = false;
                 EditorGUILayout.LabelField("The object belongs to scene " + Failure.ScenePath);
                 if (GUILayout.Button("Open scene"))
                 {
@@ -92,6 +103,10 @@ namespace Validatox.Editor.Validators.Fix
                     homeScene = activeScene.path;
                     EditorSceneManager.OpenScene(Failure.ScenePath);
                 }
+            }
+            else
+            {
+                IsInContext = true;
             }
             if (homeScene != null)
             {
@@ -121,12 +136,7 @@ namespace Validatox.Editor.Validators.Fix
                 if (serializedObject != null)
                 {
                     var success = Fix(serializedObject);
-                    if (serializedObject.hasModifiedProperties)
-                    {
-                        if (serializedObject.ApplyModifiedProperties())
-                        {
-                        }
-                    }
+                    serializedObject.ApplyModifiedProperties();
                     if (success)
                     {
                         Failure.Validator.PerformSingleValidation(obj, Failure);
@@ -148,10 +158,23 @@ namespace Validatox.Editor.Validators.Fix
             }
         }
 
+        public virtual string GetLabel() => GetType().Name;
+
         protected abstract bool Fix(SerializedObject serializedObject);
 
         protected virtual void EditorRender(ValidationFixWindow window)
-        { }
+        {
+            titleStyle ??= GUI.skin.label.Copy(s =>
+            {
+                s.fontStyle = FontStyle.Bold;
+                s.wordWrap = true;
+                s.richText = true;
+            });
+            var content = EditorGUIUtility.TrTextContentWithIcon($" {GetLabel()}", "d_CustomTool");
+
+            EditorGUILayout.LabelField(content, titleStyle);
+            //separator.Draw();
+        }
 
         /// <summary>
         ///   Display a generic error label

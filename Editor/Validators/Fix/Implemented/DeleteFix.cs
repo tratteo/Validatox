@@ -17,12 +17,12 @@ namespace Validatox.Editor.Validators.Fix
             if (IsSceneObject)
             {
                 UnityEngine.Object.DestroyImmediate(serializedObject.targetObject);
+                return true;
             }
             else
             {
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(serializedObject.targetObject));
+                return AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(serializedObject.targetObject));
             }
-            return true;
         }
     }
 }

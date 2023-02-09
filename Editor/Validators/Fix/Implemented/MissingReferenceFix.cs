@@ -14,16 +14,25 @@ namespace Validatox.Editor.Validators.Fix
     {
         private readonly string fieldName = string.Empty;
         private readonly SerializableType fieldType;
+        private readonly GUIStyle infoStyle = new GUIStyle()
+        {
+            wordWrap = true,
+
+            fontStyle = FontStyle.Italic,
+            richText = true,
+            fontSize = 10
+        };
         private UnityEngine.Object reference;
 
         public MissingReferenceFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
-            Size = new Vector2(400, 150);
+            Size = new Vector2(400, 160);
             if (args.Length > 1 && args[0] is string val && args[1] is SerializableType t)
             {
                 fieldName = val;
                 fieldType = t;
             }
+            infoStyle.normal.textColor = new Color(0.75F, 0.75F, 0.75F);
         }
 
         protected override bool Fix(SerializedObject serializedObject)
@@ -43,6 +52,7 @@ namespace Validatox.Editor.Validators.Fix
 
         protected override void EditorRender(ValidationFixWindow window)
         {
+            Size = IsInContext ? new Vector2(400, 100) : new Vector2(400, 160);
             var activeScene = SceneManager.GetActiveScene();
             Type type;
             if (fieldType == null || (type = fieldType.GetType()) == null)
@@ -52,6 +62,10 @@ namespace Validatox.Editor.Validators.Fix
             else
             {
                 reference = EditorGUILayout.ObjectField(reference, type, activeScene.path == Failure.ScenePath);
+                if (activeScene.path != Failure.ScenePath)
+                {
+                    EditorGUILayout.LabelField($"To assign objects from scene {Failure.ScenePath}, you must open the scene", infoStyle);
+                }
             }
         }
     }

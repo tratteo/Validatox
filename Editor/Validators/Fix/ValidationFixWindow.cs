@@ -38,9 +38,9 @@ namespace Validatox.Editor.Validators.Fix
                     window.ShowPopup();
                     break;
             }
+            window.titleContent = new GUIContent(fix.Title);
             window.minSize = fix.Size;
             window.maxSize = fix.Size;
-            window.titleContent = new GUIContent(fix.Title);
             var r = window.position;
             r.x = options.Position.x;
             r.y = options.Position.y;
@@ -84,7 +84,7 @@ namespace Validatox.Editor.Validators.Fix
             {
                 if (e is not ExitGUIException)
                 {
-                    Debug.Log(e);
+                    Debug.LogWarning("Unexpected error in drawing fix window");
                     HandleClose();
                 }
             }

@@ -1,4 +1,6 @@
-﻿using UnityEditor;
+﻿using Pury.Editor;
+using UnityEditor;
+using UnityEngine;
 
 namespace Validatox.Editor.Validators.Fix
 {
@@ -12,13 +14,18 @@ namespace Validatox.Editor.Validators.Fix
     {
         private readonly T1 first;
         private readonly T2 second;
+        private readonly PurySeparator separator;
 
         public CompositeFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
             first = InstantiateFix(typeof(T1), failure, args) as T1;
             second = InstantiateFix(typeof(T2), failure, args) as T2;
             ContextlessFix = first.ContextlessFix || second.ContextlessFix;
+            Size += Vector2.one * 100;
+            separator = PurySeparator.Towards(Orientation.Horizontal).Thickness(1).Colored(new Color(0.5F, 0.5F, 0.5F, 1)).Margin(new RectOffset(5, 5, 5, 5));
         }
+
+        public override string GetLabel() => $"{nameof(CompositeFix<T1, T2>)}<{first.GetLabel()},{second.GetLabel()}>";
 
         protected override bool Fix(SerializedObject serializedObject)
         {
@@ -29,9 +36,11 @@ namespace Validatox.Editor.Validators.Fix
 
         protected override void EditorRender(ValidationFixWindow window)
         {
+            base.EditorRender(window);
             EditorGUILayout.BeginVertical();
+            separator.Draw();
             first.Render(window);
-            EditorGUILayout.Space(4);
+            separator.Draw();
             second.Render(window);
             EditorGUILayout.EndVertical();
         }
@@ -45,6 +54,7 @@ namespace Validatox.Editor.Validators.Fix
         private readonly T1 first;
         private readonly T2 second;
         private readonly T3 third;
+        private readonly PurySeparator separator;
 
         public CompositeFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
@@ -52,7 +62,11 @@ namespace Validatox.Editor.Validators.Fix
             second = InstantiateFix(typeof(T2), failure, args) as T2;
             third = InstantiateFix(typeof(T3), failure, args) as T3;
             ContextlessFix = first.ContextlessFix || second.ContextlessFix || third.ContextlessFix;
+            Size += Vector2.one * 150;
+            separator = PurySeparator.Towards(Orientation.Horizontal).Thickness(1).Colored(new Color(0.5F, 0.5F, 0.5F, 1)).Margin(new RectOffset(5, 5, 5, 5));
         }
+
+        public override string GetLabel() => $"{nameof(CompositeFix<T1, T2, T3>)}<{first.GetLabel()}, {second.GetLabel()}, {third.GetLabel()}>";
 
         protected override bool Fix(SerializedObject serializedObject)
         {
@@ -64,11 +78,13 @@ namespace Validatox.Editor.Validators.Fix
 
         protected override void EditorRender(ValidationFixWindow window)
         {
+            base.EditorRender(window);
             EditorGUILayout.BeginVertical();
+            separator.Draw();
             first.Render(window);
-            EditorGUILayout.Space(4);
+            separator.Draw();
             second.Render(window);
-            EditorGUILayout.Space(4);
+            separator.Draw();
             third.Render(window);
             EditorGUILayout.EndVertical();
         }
@@ -87,6 +103,7 @@ namespace Validatox.Editor.Validators.Fix
         private readonly T2 second;
         private readonly T3 third;
         private readonly T4 fourth;
+        private readonly PurySeparator separator;
 
         public CompositeFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
@@ -95,7 +112,11 @@ namespace Validatox.Editor.Validators.Fix
             third = InstantiateFix(typeof(T3), failure, args) as T3;
             fourth = InstantiateFix(typeof(T4), failure, args) as T4;
             ContextlessFix = first.ContextlessFix || second.ContextlessFix || third.ContextlessFix || fourth.ContextlessFix;
+            Size += Vector2.one * 200;
+            separator = PurySeparator.Towards(Orientation.Horizontal).Thickness(1).Colored(new Color(0.5F, 0.5F, 0.5F, 1)).Margin(new RectOffset(5, 5, 5, 5));
         }
+
+        public override string GetLabel() => $"{nameof(CompositeFix<T1, T2, T3, T4>)}<{first.GetLabel()}, {second.GetLabel()}, {third.GetLabel()}, {fourth.GetLabel()}>";
 
         protected override bool Fix(SerializedObject serializedObject)
         {
@@ -108,13 +129,15 @@ namespace Validatox.Editor.Validators.Fix
 
         protected override void EditorRender(ValidationFixWindow window)
         {
+            base.EditorRender(window);
             EditorGUILayout.BeginVertical();
+            separator.Draw();
             first.Render(window);
-            EditorGUILayout.Space(4);
+            separator.Draw();
             second.Render(window);
-            EditorGUILayout.Space(4);
+            separator.Draw();
             third.Render(window);
-            EditorGUILayout.Space(4);
+            separator.Draw();
             fourth.Render(window);
             EditorGUILayout.EndVertical();
         }

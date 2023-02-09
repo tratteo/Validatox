@@ -77,7 +77,9 @@ namespace Validatox.Editor
                 for (int i = 0; i < failures.Count(); i++)
                 {
                     var failure = failures.ElementAt(i);
-                    if (!failure.TryGetFix(out var fix) || !failure.TryGetSubject(out _))
+
+                    var subject = failure.TryGetSubject(out var sub);
+                    if (!failure.TryGetFix(out var fix) || !fix.IsInContext || (fix.IsInContext && !subject))
                     {
                         EditorGUILayout.BeginHorizontal();
                         EditorGUILayout.LabelField(new GUIContent($"{i + 1} | "), indexStyle);

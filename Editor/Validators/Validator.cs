@@ -74,6 +74,7 @@ namespace Validatox.Editor.Validators
                     }
                 }
             }
+
             return fixes;
         }
 
@@ -85,12 +86,12 @@ namespace Validatox.Editor.Validators
             if (!hasResult) return;
             if (result.Successful)
             {
-                ValidatoxLogEditorWindow.Notify(Log.Create($"{name} > Validation successful!").Type(LogType.Assert));
+                ValidatoxLogEditorWindow.Notify(Log.Create($"{name} > Validation successful!").Type(LogType.Assert).WithSubject(this));
             }
             else
             {
                 ValidatoxLogEditorWindow.Notify(result.Failures,
-                    Log.Create($"{name} Validation failed with <b>{result.Failures.Count}</b> errors").Type(LogType.Error).WithSubject(this));
+                    Log.Create($"{name} > Validation failed with <b>{result.Failures.Count}</b> errors").Type(LogType.Error).WithSubject(this));
             }
         }
 
@@ -114,6 +115,7 @@ namespace Validatox.Editor.Validators
                 oldFailures.AddRange(newFailures);
                 hasResult = true;
                 result = new ValidationResult(oldFailures, DateTime.Now);
+                MarkDirtyValidation();
                 ForceSerialize(this);
             }
         }

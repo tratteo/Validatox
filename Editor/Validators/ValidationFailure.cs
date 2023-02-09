@@ -72,6 +72,7 @@ namespace Validatox.Editor.Validators
             if (fixType == null || fixType.GetType() == null)
             {
                 fix = null;
+
                 return false;
             }
             fix = ValidationFix.InstantiateFix(FixType.GetType(), this, fixArgs ?? new object[] { });
@@ -92,6 +93,7 @@ namespace Validatox.Editor.Validators
             }
             obj = null;
             if (causerInstanceId == null) return false;
+
             if (causerGlobalId == null)
             {
                 if (!GlobalObjectId.TryParse(causerInstanceId, out var id)) return false;
