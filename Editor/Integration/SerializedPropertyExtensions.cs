@@ -9,6 +9,12 @@ namespace Validatox.Editor
 {
     public static class SerializedPropertyExtensions
     {
+        /// <summary>
+        ///   Get the value of a serialized property
+        /// </summary>
+        /// <typeparam name="T"> </typeparam>
+        /// <param name="property"> </param>
+        /// <returns> </returns>
         public static T GetValue<T>(this SerializedProperty property) where T : class
         {
             object obj = property.serializedObject.targetObject;
@@ -30,6 +36,13 @@ namespace Validatox.Editor
             return (T)obj;
         }
 
+        /// <summary>
+        ///   Set the value of a serialized property
+        /// </summary>
+        /// <typeparam name="T"> </typeparam>
+        /// <param name="property"> </param>
+        /// <param name="value"> </param>
+        /// <returns> </returns>
         public static bool SetValue<T>(this SerializedProperty property, T value) where T : class
         {
             object obj = property.serializedObject.targetObject;
@@ -62,7 +75,7 @@ namespace Validatox.Editor
             }
         }
 
-        public static bool SetFieldValue(string fieldName, object obj, object value, bool includeAllBases = false, BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+        private static bool SetFieldValue(string fieldName, object obj, object value, bool includeAllBases = false, BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
         {
             var field = obj.GetType().GetField(fieldName, bindings);
             if (field != null)
@@ -73,7 +86,7 @@ namespace Validatox.Editor
             return false;
         }
 
-        public static bool SetFieldValueWithIndex(string fieldName, object obj, int index, object value, bool includeAllBases = false, BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
+        private static bool SetFieldValueWithIndex(string fieldName, object obj, int index, object value, bool includeAllBases = false, BindingFlags bindings = BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic)
         {
             var field = obj.GetType().GetField(fieldName, bindings);
             if (field != null)

@@ -89,8 +89,19 @@ namespace Validatox.Editor
             return behaviours;
         }
 
+        /// <summary>
+        ///   <inheritdoc cref="GetAllBehavioursObjects(IEnumerable{Type}, IEnumerable{UnityEngine.Object})"/>
+        /// </summary>
+        /// <param name="objs"> </param>
+        /// <returns> </returns>
         public static List<UnityEngine.Object> GetAllBehavioursObjects(IEnumerable<UnityEngine.Object> objs) => GetAllBehavioursObjects(new Type[0], objs);
 
+        /// <summary>
+        ///   Retrieve all the behaviours, <see cref="MonoBehaviour"/> or <see cref="ScriptableObject"/>, in the specified objects
+        /// </summary>
+        /// <param name="exclusions"> An enumerable of types to exclude from the search </param>
+        /// <param name="objs"> </param>
+        /// <returns> </returns>
         public static List<UnityEngine.Object> GetAllBehavioursObjects(IEnumerable<Type> exclusions, IEnumerable<UnityEngine.Object> objs)
         {
             var behaviours = new List<UnityEngine.Object>();
@@ -138,7 +149,7 @@ namespace Validatox.Editor
         public static List<T> GetAllBehavioursAtPath<T>(string path, Action<float> progress = null, params Type[] exclusions) where T : UnityEngine.Object => GetAllBehaviours<T>(GetUnityObjectsAtPath(path, progress), exclusions);
 
         /// <summary>
-        ///   Applied to all <see cref="UnityEngine."/> in the <i> Asset </i> folder. <inheritdoc cref="Gib.GetAllBehaviours{T}(UnityEngine.Object[])"/>
+        ///   Applied to all <see cref="UnityEngine.Object"/> in the <i> Asset </i> folder. <inheritdoc cref="Gib.GetAllBehaviours{T}(UnityEngine.Object[])"/>
         /// </summary>
         /// <typeparam name="T"> </typeparam>
         /// <param name="root"> </param>

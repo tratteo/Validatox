@@ -2,6 +2,9 @@
 
 namespace Validatox.Editor.Extern
 {
+    /// <summary>
+    ///   Make a <see cref="Type"/> serializable through its assembly qualified name
+    /// </summary>
     [System.Serializable]
     public class SerializableType : IEquatable<SerializableType>
     {
@@ -9,8 +12,6 @@ namespace Validatox.Editor.Extern
         private string assemblyQualifiedName;
         private string assemblyName;
         private Type type = null;
-
-        public bool Valid => !string.IsNullOrWhiteSpace(name) && !string.IsNullOrWhiteSpace(assemblyQualifiedName);
 
         public SerializableType(System.Type type)
         {
@@ -44,6 +45,20 @@ namespace Validatox.Editor.Extern
 
         public static implicit operator Type(SerializableType type) => type.GetType();
 
+        public bool TryResolve()
+        {
+            if (string.IsNullOrWhiteSpace(name) || string.IsNullOrWhiteSpace(assemblyName)) return false;
+            try
+            {
+                type = Type.GetType(assemblyQualifiedName);
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
         public override bool Equals(object obj)
         {
             if (obj is SerializableType == false)
@@ -63,13 +78,9 @@ namespace Validatox.Editor.Extern
             return type.GetHashCode();
         }
 
-        public new System.Type GetType()
+        public new Type GetType()
         {
-            if (type == null)
-            {
-                type = System.Type.GetType(assemblyQualifiedName);
-            }
-            return type;
+            return TryResolve() ? type : type;
         }
     }
 }

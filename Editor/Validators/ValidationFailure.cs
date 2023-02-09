@@ -1,4 +1,5 @@
-﻿using System.Text;
+﻿using System;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 using Validatox.Editor.Extern;
@@ -9,56 +10,113 @@ namespace Validatox.Editor.Validators
     [System.Serializable]
     public class ValidationFailure
     {
+        [SerializeField] private string guid;
         [SerializeField] private Validator validator;
-        [SerializeField] private int code;
         [SerializeField] private string reason;
         [SerializeField] private string causerInstanceId;
         [SerializeField] private SerializableType fixType;
         [SerializeField] private object[] fixArgs;
+        [SerializeField] private string scenePath;
         private GlobalObjectId? causerGlobalId;
+        private UnityEngine.Object cachedSubject;
 
+        /// <summary>
+        ///   The validator that caused this failure
+        /// </summary>
         public Validator Validator => validator;
 
+        /// <summary>
+        ///   The serializable type of the <see cref="ValidationFix"/> for this failure
+        /// </summary>
         public SerializableType FixType => fixType;
 
-        public int Code => code;
+        /// <summary>
+        ///   A nullable property that indicates the scene the subject of this failure belongs to
+        /// </summary>
+        public string ScenePath => scenePath;
 
+        /// <summary>
+        ///   The reason of the failure
+        /// </summary>
         public string Reason => reason;
 
-        private ValidationFailure(Validator validator, int causer)
+        private ValidationFailure(Validator validator)
         {
+            guid = Guid.NewGuid().ToString();
             this.validator = validator;
-            code = 0;
             reason = string.Empty;
-            causerInstanceId = GlobalObjectId.GetGlobalObjectIdSlow(causer).ToString();
+            causerInstanceId = null;
             fixType = null;
         }
 
-        public static ValidatorFailureBuilder Of(Validator validator, UnityEngine.Object causer)
+        public static ValidatorFailureBuilder Of(Validator validator) => new ValidatorFailureBuilder(validator);
+
+        /// <summary>
+        ///   Get the unique <see cref="Guid"/> of this validation
+        /// </summary>
+        /// <returns> </returns>
+        public string GetId()
         {
-            GlobalObjectId.GetGlobalObjectIdSlow(causer.GetInstanceID());
-            return new ValidatorFailureBuilder(validator, causer.GetInstanceID());
+            if (Guid.TryParse(guid, out var id)) return id.ToString();
+            var g = GUID.Generate();
+            guid = g.ToString();
+            return guid;
         }
 
-        public ValidationFix InstantiateFix() => ValidationFix.InstantiateFix(FixType.GetType(), validator, GetCauserObject(), fixArgs ?? new object[] { });
-
-        public UnityEngine.Object GetCauserObject()
+        /// <summary>
+        ///   Attempt to instantiate the fix of this failure
+        /// </summary>
+        /// <returns> </returns>
+        public bool TryGetFix(out ValidationFix fix)
         {
+            if (fixType == null || fixType.GetType() == null)
+            {
+                fix = null;
+                return false;
+            }
+            fix = ValidationFix.InstantiateFix(FixType.GetType(), this, fixArgs ?? new object[] { });
+            return true;
+        }
+
+        /// <summary>
+        ///   Attempt to retrieve the subject of this failure. Note that if the subject is in a closed scene, this method will return null.
+        /// </summary>
+        /// <param name="obj"> </param>
+        /// <returns> </returns>
+        public bool TryGetSubject(out UnityEngine.Object obj)
+        {
+            if (cachedSubject)
+            {
+                obj = cachedSubject;
+                return true;
+            }
+            obj = null;
+            if (causerInstanceId == null) return false;
             if (causerGlobalId == null)
             {
-                if (!GlobalObjectId.TryParse(causerInstanceId, out var id)) return null;
+                if (!GlobalObjectId.TryParse(causerInstanceId, out var id)) return false;
                 causerGlobalId = id;
             }
-            return GlobalObjectId.GlobalObjectIdentifierToObjectSlow((GlobalObjectId)causerGlobalId);
+
+            cachedSubject = GlobalObjectId.GlobalObjectIdentifierToObjectSlow((GlobalObjectId)causerGlobalId);
+            obj = cachedSubject;
+            return cachedSubject;
         }
 
+        /// <summary>
+        ///   Get a representation of this failure, formatting the reason and the data
+        /// </summary>
+        /// <returns> </returns>
         public override string ToString()
         {
-            var builder = new StringBuilder($"{Validator} failure [{Code}]: {Reason}");
-            var causer = GetCauserObject();
-            if (causer != null)
+            var builder = new StringBuilder($"Failure");
+            if (!string.IsNullOrEmpty(Reason))
             {
-                if (causer.name.Length > 0) builder.Append(". Caused by ").Append(causer.name);
+                builder.Append($" {Reason}");
+            }
+            if (TryGetSubject(out var causer))
+            {
+                if (causer.name.Length > 0) builder.Append(" caused by <b>").Append(causer.name).Append("</b>");
             }
             return builder.ToString();
         }
@@ -67,25 +125,43 @@ namespace Validatox.Editor.Validators
         {
             private readonly ValidationFailure failure;
 
-            public ValidatorFailureBuilder(Validator validator, int causer)
+            public ValidatorFailureBuilder(Validator validator)
             {
-                failure = new ValidationFailure(validator, causer);
+                failure = new ValidationFailure(validator);
             }
 
             public static implicit operator ValidationFailure(ValidatorFailureBuilder builder) => builder.Build();
 
+            /// <summary>
+            ///   Specify the reason of this failure
+            /// </summary>
+            /// <param name="reason"> </param>
+            /// <returns> </returns>
             public ValidatorFailureBuilder Reason(string reason)
             {
                 failure.reason = reason;
                 return this;
             }
 
-            public ValidatorFailureBuilder Code(int code)
+            /// <summary>
+            ///   Identify the object that caused the failure
+            /// </summary>
+            /// <param name="subject"> </param>
+            /// <param name="scenePath"> </param>
+            /// <returns> </returns>
+            public ValidatorFailureBuilder CausedBy(UnityEngine.Object subject, string scenePath = null)
             {
-                failure.code = code;
+                failure.causerInstanceId = GlobalObjectId.GetGlobalObjectIdSlow(subject.GetInstanceID()).ToString();
+                failure.scenePath = scenePath;
                 return this;
             }
 
+            /// <summary>
+            ///   Specify a <see cref="ValidationFix"/> that can be used to fix this failure
+            /// </summary>
+            /// <typeparam name="T"> </typeparam>
+            /// <param name="args"> </param>
+            /// <returns> </returns>
             public ValidatorFailureBuilder WithFix<T>(params object[] args) where T : ValidationFix
             {
                 failure.fixType = typeof(T);

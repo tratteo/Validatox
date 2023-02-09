@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Reflection;
+using System.Text;
 using UnityEditor;
 using UnityEngine;
 
@@ -91,6 +92,35 @@ namespace Validatox.Editor
             tooltip ??= string.Empty;
             EditorGUILayout.PropertyField(prop, new GUIContent(label, tooltip));
             return prop;
+        }
+
+        public static string ToHex(this Color color)
+        {
+            var sBuilder = new StringBuilder();
+            sBuilder.Append(Mathf.RoundToInt(color.a * 255).ToString("X2"));
+            sBuilder.Append(Mathf.RoundToInt(color.r * 255).ToString("X2"));
+            sBuilder.Append(Mathf.RoundToInt(color.g * 255).ToString("X2"));
+            sBuilder.Append(Mathf.RoundToInt(color.b * 255).ToString("X2"));
+            return sBuilder.ToString();
+        }
+
+        public static Color HexToColor(this string hex)
+        {
+            if (hex.Length < 6) return Color.black;
+            var a = 1F;
+            var index = 0;
+            if (hex.Length == 8)
+            {
+                a = Convert.ToInt32(hex.Substring(index, 2), 16) / 255F;
+                index += 2;
+            }
+            var r = Convert.ToInt32(hex.Substring(index, 2), 16) / 255F;
+            index += 2;
+            var g = Convert.ToInt32(hex.Substring(index, 2), 16) / 255F;
+            index += 2;
+            var b = Convert.ToInt32(hex.Substring(index, 2), 16) / 255F;
+            index += 2;
+            return new Color(r, g, b, a);
         }
     }
 }

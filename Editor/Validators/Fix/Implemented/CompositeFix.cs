@@ -1,54 +1,82 @@
 ﻿using UnityEditor;
-using UnityEngine;
 
 namespace Validatox.Editor.Validators.Fix
 {
+    /// <summary>
+    ///   Create a fix composed of multiple fixes that are all rendered in the popup window. Eligible for automatic fixing: the fix are
+    ///   applied depending on children fixes
+    /// </summary>
+    /// <typeparam name="T1"> </typeparam>
+    /// <typeparam name="T2"> </typeparam>
     public class CompositeFix<T1, T2> : ValidationFix where T1 : ValidationFix where T2 : ValidationFix
     {
         private readonly T1 first;
         private readonly T2 second;
 
-        public CompositeFix(Validator validator, Object subject, params object[] args) : base(validator, subject, args)
+        public CompositeFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
-            first = InstantiateFix(typeof(T1), validator, subject, args) as T1;
-            second = InstantiateFix(typeof(T2), validator, subject, args) as T2;
+            first = InstantiateFix(typeof(T1), failure, args) as T1;
+            second = InstantiateFix(typeof(T2), failure, args) as T2;
+            ContextlessFix = first.ContextlessFix || second.ContextlessFix;
         }
 
-        public override void EditorRender(ValidationFixWindow window)
+        protected override bool Fix(SerializedObject serializedObject)
+        {
+            first.ApplyFix();
+            second.ApplyFix();
+            return false;
+        }
+
+        protected override void EditorRender(ValidationFixWindow window)
         {
             EditorGUILayout.BeginVertical();
-            first.EditorRender(window);
+            first.Render(window);
             EditorGUILayout.Space(4);
-            second.EditorRender(window);
+            second.Render(window);
             EditorGUILayout.EndVertical();
         }
     }
 
+    /// <summary>
+    ///   <inheritdoc cref="CompositeFix{T1, T2}"/>
+    /// </summary>
     public class CompositeFix<T1, T2, T3> : ValidationFix where T1 : ValidationFix where T2 : ValidationFix where T3 : ValidationFix
     {
         private readonly T1 first;
         private readonly T2 second;
         private readonly T3 third;
 
-        public CompositeFix(Validator validator, Object subject, params object[] args) : base(validator, subject, args)
+        public CompositeFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
-            first = InstantiateFix(typeof(T1), validator, subject, args) as T1;
-            second = InstantiateFix(typeof(T2), validator, subject, args) as T2;
-            third = InstantiateFix(typeof(T3), validator, subject, args) as T3;
+            first = InstantiateFix(typeof(T1), failure, args) as T1;
+            second = InstantiateFix(typeof(T2), failure, args) as T2;
+            third = InstantiateFix(typeof(T3), failure, args) as T3;
+            ContextlessFix = first.ContextlessFix || second.ContextlessFix || third.ContextlessFix;
         }
 
-        public override void EditorRender(ValidationFixWindow window)
+        protected override bool Fix(SerializedObject serializedObject)
+        {
+            first.ApplyFix();
+            second.ApplyFix();
+            third.ApplyFix();
+            return false;
+        }
+
+        protected override void EditorRender(ValidationFixWindow window)
         {
             EditorGUILayout.BeginVertical();
-            first.EditorRender(window);
+            first.Render(window);
             EditorGUILayout.Space(4);
-            second.EditorRender(window);
+            second.Render(window);
             EditorGUILayout.Space(4);
-            third.EditorRender(window);
+            third.Render(window);
             EditorGUILayout.EndVertical();
         }
     }
 
+    /// <summary>
+    ///   <inheritdoc cref="CompositeFix{T1, T2}"/>
+    /// </summary>
     public class CompositeFix<T1, T2, T3, T4> : ValidationFix
         where T1 : ValidationFix
         where T2 : ValidationFix
@@ -60,24 +88,34 @@ namespace Validatox.Editor.Validators.Fix
         private readonly T3 third;
         private readonly T4 fourth;
 
-        public CompositeFix(Validator validator, Object subject, params object[] args) : base(validator, subject, args)
+        public CompositeFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
-            first = InstantiateFix(typeof(T1), validator, subject, args) as T1;
-            second = InstantiateFix(typeof(T2), validator, subject, args) as T2;
-            third = InstantiateFix(typeof(T3), validator, subject, args) as T3;
-            fourth = InstantiateFix(typeof(T4), validator, subject, args) as T4;
+            first = InstantiateFix(typeof(T1), failure, args) as T1;
+            second = InstantiateFix(typeof(T2), failure, args) as T2;
+            third = InstantiateFix(typeof(T3), failure, args) as T3;
+            fourth = InstantiateFix(typeof(T4), failure, args) as T4;
+            ContextlessFix = first.ContextlessFix || second.ContextlessFix || third.ContextlessFix || fourth.ContextlessFix;
         }
 
-        public override void EditorRender(ValidationFixWindow window)
+        protected override bool Fix(SerializedObject serializedObject)
+        {
+            first.ApplyFix();
+            second.ApplyFix();
+            third.ApplyFix();
+            fourth.ApplyFix();
+            return false;
+        }
+
+        protected override void EditorRender(ValidationFixWindow window)
         {
             EditorGUILayout.BeginVertical();
-            first.EditorRender(window);
+            first.Render(window);
             EditorGUILayout.Space(4);
-            second.EditorRender(window);
+            second.Render(window);
             EditorGUILayout.Space(4);
-            third.EditorRender(window);
+            third.Render(window);
             EditorGUILayout.Space(4);
-            fourth.EditorRender(window);
+            fourth.Render(window);
             EditorGUILayout.EndVertical();
         }
     }

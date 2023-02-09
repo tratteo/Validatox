@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Pury.Editor
 {
+    /// <summary>
+    ///   Sidebar to place in a <see cref="PuryWindow"/>
+    /// </summary>
     public class PurySidebar
     {
         public Action<PurySidebar> drawJob;

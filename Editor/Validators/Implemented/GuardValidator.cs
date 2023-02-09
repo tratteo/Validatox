@@ -5,6 +5,7 @@ using System.Reflection;
 using System.Text;
 using UnityEditor;
 using UnityEngine;
+using Validatox.Editor.Extern;
 using Validatox.Editor.Validators.Fix;
 using Validatox.Meta;
 using Validatox.Serializable;
@@ -27,14 +28,8 @@ namespace Validatox.Editor.Validators
             progress?.Invoke(progressVal);
             if (validateAssets)
             {
-                var singleList = new List<UnityEngine.Object>();
                 var assetsObjs = ValidatoxTools.GetUnityObjectsInAssets();
-                foreach (var a in assetsObjs)
-                {
-                    singleList.Add(a);
-                    assets.AddRange(ValidatoxTools.GetAllBehavioursObjects(singleList));
-                    singleList.Clear();
-                }
+                assets.AddRange(ValidatoxTools.GetAllBehavioursObjects(assetsObjs));
             }
 
             progress?.Invoke(progressVal.Doing("Retrieving scenes..."));
@@ -43,7 +38,6 @@ namespace Validatox.Editor.Validators
             {
                 if (EditorBuildSettings.scenes.Length <= 0)
                 {
-                    Log("No scenes in build settings", LogType.Warning);
                 }
                 else
                 {
@@ -63,7 +57,6 @@ namespace Validatox.Editor.Validators
                 failures.AddRange(Guard(obj, obj, AssetDatabase.GetAssetPath(obj)));
                 progress?.Invoke(progressVal.WithProgress((float)count / totalLength));
             }
-            Log($"Validated {assets.Count} assets");
 
             scenesPaths.RemoveAll(s => string.IsNullOrWhiteSpace(s));
             if (scenesPaths.Count > 0)
@@ -79,8 +72,19 @@ namespace Validatox.Editor.Validators
                     });
                     progress?.Invoke(progressVal.WithProgress((float)count / totalLength));
                 }
-                Log($"Validated {(allScenes ? "all" : scenesPaths.Count)} scenes");
             }
+        }
+
+        protected override List<ValidationFailure> ValidateSingle(UnityEngine.Object obj, string scenePath)
+        {
+            var behaviours = ValidatoxTools.GetAllBehavioursObjects(new List<UnityEngine.Object>() { obj });
+            var failures = new List<ValidationFailure>();
+            foreach (var behaviour in behaviours)
+            {
+                var path = AssetDatabase.Contains(obj) ? AssetDatabase.GetAssetPath(obj) : scenePath;
+                failures.AddRange(Guard(behaviour, obj, path));
+            }
+            return failures;
         }
 
         protected override void ForceSerialize(Validator dirty)
@@ -93,7 +97,7 @@ namespace Validatox.Editor.Validators
         {
             if (ExecuteMutex.isExecuting)
             {
-                Log("Cannot run multiple guarded validators at once!", LogType.Warning);
+                NotifyLog(Log.Create("Cannot run multiple guarded validators at once!").Type(LogType.Warning));
                 return false;
             }
             return true;
@@ -111,40 +115,48 @@ namespace Validatox.Editor.Validators
             ExecuteMutex.executingAssetPath = string.Empty;
         }
 
-        private void Log(string message, LogType type = LogType.Log) => ValidatoxLogEditorWindow.NotifyLog($"<b>[GuardedValidator]</b> -> {message}", type);
+        private void NotifyLog(params Log[] logs)
+        {
+            var l = new List<Log>
+            {
+                Log.Create($"<b>{name}</b>")
+            };
+            l.AddRange(logs);
+            ValidatoxLogEditorWindow.Notify(l.ToArray());
+        }
 
-        private ValidationFailure BuildFailure(GuardAttribute guarded, FieldInfo field, UnityEngine.Object parent, Type classType, string path, bool isAsset)
+        private ValidationFailure BuildFailure(GuardAttribute guarded, FieldInfo field, UnityEngine.Object behavior, Type classType, string path, string scene)
         {
             var logBuilder = new StringBuilder();
-            if (isAsset)
+            if (scene == null)
             {
-                logBuilder.Append("<color=cyan><b>Prefab</b></color> => ");
+                logBuilder.Append("<color=#47c3e6><b>Prefab</b></color> > ");
             }
             else
             {
-                logBuilder.Append("<color=magenta><b>Scene Object</b></color> => ");
+                logBuilder.Append("<color=#ac55e6><b>Scene Object</b></color> > ");
             }
             switch (guarded.SeverityType)
             {
                 case GuardAttribute.Severity.Info:
-                    logBuilder.AppendFormat("<b>{0}</b> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
+                    logBuilder.AppendFormat("<b>{0}</b> field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
                     break;
 
                 case GuardAttribute.Severity.Warning:
-                    logBuilder.AppendFormat("<color=yellow><b>{0}</b></color> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
+                    logBuilder.AppendFormat("<color=#E1BE32><b>{0}</b></color> field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
                     break;
 
                 case GuardAttribute.Severity.Error:
-                    logBuilder.AppendFormat("<color=red><b>{0}</b></color> | Field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
+                    logBuilder.AppendFormat("<color=#C8231E><b>{0}</b></color> field <b>{1}</b> of class <b>{2}</b> on Object <b>{3}</b> is set to default value", guarded.Message, field.Name, classType, path);
                     break;
             }
-            return ValidationFailure.Of(this, parent).WithFix<MissingReferenceFix>(field.Name).Reason(logBuilder.ToString());
+            return ValidationFailure.Of(this).CausedBy(behavior, scene).WithFix<MissingReferenceFix>(field.Name, new SerializableType(field.FieldType)).Reason(logBuilder.ToString());
         }
 
         private List<ValidationFailure> Guard(UnityEngine.Object behaviour, UnityEngine.Object parentObj, string path)
         {
             var failures = new List<ValidationFailure>();
-            if (behaviour is null) return failures;
+            if (behaviour == null) return failures;
             var fields = behaviour.GetType().GetFields(BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance);
             for (var i = 0; i < fields.Length; i++)
             {
@@ -155,7 +167,7 @@ namespace Validatox.Editor.Validators
                     if (value is not null && value.GetType().IsValueType) continue;
                     if (value.IsNullOrDefault())
                     {
-                        failures.Add(BuildFailure(guarded, field, behaviour, behaviour.GetType(), $"{path}/{parentObj.name}", EditorUtility.IsPersistent(parentObj)));
+                        failures.Add(BuildFailure(guarded, field, behaviour, behaviour.GetType(), $"{path}/{parentObj.name}", AssetDatabase.Contains(parentObj) ? null : path));
                     }
                 }
             }

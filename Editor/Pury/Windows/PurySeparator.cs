@@ -3,6 +3,9 @@ using UnityEngine;
 
 namespace Pury.Editor
 {
+    /// <summary>
+    ///   A basic separator
+    /// </summary>
     public class PurySeparator
     {
         private GUIStyle style;

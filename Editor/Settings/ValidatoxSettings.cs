@@ -6,6 +6,8 @@ namespace Validatox.Editor.Settings
 {
     public class ValidatoxSettings
     {
+        public static event Action<ValidatoxSettingsData> OnEdit = delegate { };
+
         public static void Edit(Action<ValidatoxSettingsData> editor)
         {
             var data = Load();
@@ -24,6 +26,7 @@ namespace Validatox.Editor.Settings
                 }
             }
             File.WriteAllText(ValidatoxSettingsData.Location, JsonConvert.SerializeObject(data, Formatting.Indented));
+            OnEdit?.Invoke(data);
         }
 
         internal static ValidatoxSettingsData Load()

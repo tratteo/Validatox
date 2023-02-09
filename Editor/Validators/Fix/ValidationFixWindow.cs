@@ -47,32 +47,46 @@ namespace Validatox.Editor.Validators.Fix
             window.position = r;
         }
 
+        private void HandleClose()
+        {
+            Close();
+        }
+
         private void OnGUI()
         {
-            separator ??= PurySeparator.Towards(Orientation.Horizontal).Margin(new RectOffset(8, 8, 8, 8));
-            float padding = 10;
-            Rect area = new Rect(padding, padding,
-                 position.width - padding * 2f, position.height - padding * 2f);
-
-            GUILayout.BeginArea(area);
-            scrollPos = GUILayout.BeginScrollView(scrollPos);
             try
             {
-                if (fix == null) Close();
-                fix.EditorRender(this);
-                GUILayout.FlexibleSpace();
+                minSize = fix.Size;
+                maxSize = fix.Size;
+                separator ??= PurySeparator.Towards(Orientation.Horizontal).Margin(new RectOffset(8, 8, 8, 8));
+                float padding = 10;
+                Rect area = new Rect(padding, padding,
+                     position.width - padding * 2f, position.height - padding * 2f);
+
+                GUILayout.BeginArea(area);
+                scrollPos = GUILayout.BeginScrollView(scrollPos);
+                if (fix == null) HandleClose();
+                fix.Render(this);
                 separator.Draw();
                 EditorGUILayout.BeginHorizontal();
-
+                if (GUILayout.Button("Apply"))
+                {
+                    fix.ApplyFix();
+                    //HandleClose();
+                }
                 if (GUILayout.Button("Close"))
                 {
-                    Close();
+                    HandleClose();
                 }
                 EditorGUILayout.EndHorizontal();
             }
-            catch (Exception)
+            catch (Exception e)
             {
-                Close();
+                if (e is not ExitGUIException)
+                {
+                    Debug.Log(e);
+                    HandleClose();
+                }
             }
             finally
             {

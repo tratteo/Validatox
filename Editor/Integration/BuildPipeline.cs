@@ -4,7 +4,7 @@ using Validatox.Editor.Settings;
 
 namespace Validatox.Editor
 {
-    public class BuildPipeline : IPreprocessBuildWithReport
+    internal class BuildPipeline : IPreprocessBuildWithReport
     {
         public int callbackOrder => 0;
 

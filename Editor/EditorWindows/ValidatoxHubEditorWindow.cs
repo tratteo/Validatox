@@ -38,7 +38,7 @@ namespace Validatox.Editor
 
         protected override void Layout(List<PurySidebar> sidebars)
         {
-            titleContent = new GUIContent("Hub", Resources.Icon(), "Get validated :D");
+            titleContent = new GUIContent("Hub", Resources.Icon());
             autoRepaintOnSceneChange = true;
             minSize = new Vector2(1024, 512);
 
@@ -323,14 +323,20 @@ namespace Validatox.Editor
 
                     GravitateEnd(() =>
                     {
-                        var content = EditorGUIUtility.TrIconContent("d_UnityEditor.ConsoleWindow@2x");
-                        content.tooltip = "Open Validatox logs";
                         GUILayout.BeginHorizontal();
                         Center(() =>
                         {
+                            var content = EditorGUIUtility.TrIconContent("d_UnityEditor.ConsoleWindow@2x");
+                            content.tooltip = "Open Validatox logs";
                             if (GUILayout.Button(content, GUILayout.Width(EditorGUIUtility.singleLineHeight * 2), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
                             {
                                 GetWindow<ValidatoxLogEditorWindow>();
+                            }
+                            content = EditorGUIUtility.TrIconContent("d_Settings@2x");
+                            content.tooltip = "Open Validatox settings";
+                            if (GUILayout.Button(content, GUILayout.Width(EditorGUIUtility.singleLineHeight * 2), GUILayout.Height(EditorGUIUtility.singleLineHeight)))
+                            {
+                                GetWindow<ValidatoxSettingsEditorWindow>();
                             }
                         });
                         GUILayout.EndHorizontal();

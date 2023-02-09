@@ -1,33 +1,31 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Validatox.Editor.Validators.Fix
 {
+    /// <summary>
+    ///   Remove a certain component fix. Eligible to automatic fixing
+    /// </summary>
+    /// <typeparam name="T"> </typeparam>
     public class RemoveComponentFix<T> : ValidationFix where T : Component
     {
-        private readonly GameObject gObj;
-
-        public RemoveComponentFix(Validator validator, UnityEngine.Object subject, params object[] args) : base(validator, subject, args)
+        public RemoveComponentFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
-            gObj = subject is GameObject ? subject as GameObject : null;
+            ContextlessFix = true;
         }
 
-        public override void EditorRender(ValidationFixWindow window)
+        protected override bool Fix(SerializedObject serializedObject)
         {
-            if (gObj == null)
+            var obj = serializedObject.targetObject;
+            if (obj is GameObject gObj)
             {
-                ErrorLabel("the subject is not a GameObject");
-            }
-            else
-            {
-                if (GUILayout.Button($"Remove {typeof(T)}"))
+                if (gObj.TryGetComponent<T>(out var comp))
                 {
-                    if (gObj.TryGetComponent<T>(out var comp))
-                    {
-                        UnityEngine.Object.DestroyImmediate(comp, true);
-                        Validator.MarkDirtyValidation();
-                    }
+                    Object.DestroyImmediate(comp, true);
+                    return true;
                 }
             }
+            return false;
         }
     }
 }

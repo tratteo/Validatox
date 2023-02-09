@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace Pury.Editor
 {
+    /// <summary>
+    ///   Base pury editor window
+    /// </summary>
     public abstract class PuryWindow : EditorWindow
     {
         private Dictionary<Position, List<PurySidebar>> sidebars;

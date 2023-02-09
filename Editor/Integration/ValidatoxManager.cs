@@ -12,8 +12,7 @@ namespace Validatox.Editor
     {
         /// <summary>
         ///   Validate all the fields marked with the <see cref="Meta.GuardAttribute"/> using the default <see cref="GuardValidator"/>
-        ///   embedded in GibFrame. In order to override the default validator, create a new <see cref="GuardValidator"/> in the <i>
-        ///   Asset/Editor </i> folder of the project.
+        ///   embedded in GibFrame. In order to override the default validator, create a new <see cref="GuardValidator"/>.
         /// </summary>
         public static bool ValidateGuarded()
         {
@@ -53,7 +52,7 @@ namespace Validatox.Editor
                 var res = ValidatoxTools.GetAllBehavioursInAsset<GuardValidator>();
                 if (res.Count <= 0)
                 {
-                    ValidatoxLogEditorWindow.NotifyLog($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder", LogType.Warning);
+                    ValidatoxLogEditorWindow.Notify(Log.Create($"Unable to find {nameof(GuardValidator)}. Creating a new one in the package root folder").Type(LogType.Warning));
                     var val = ScriptableObject.CreateInstance<GuardValidator>();
                     Directory.CreateDirectory($"Assets{Path.AltDirectorySeparatorChar}{Resources.Author}{Path.AltDirectorySeparatorChar}{Resources.Name}");
                     AssetDatabase.CreateAsset(val, $"Assets{Path.AltDirectorySeparatorChar}{Resources.Author}{Path.AltDirectorySeparatorChar}{Resources.Name}{Path.AltDirectorySeparatorChar}ox_guard_validator.asset");

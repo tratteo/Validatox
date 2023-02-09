@@ -1,22 +1,28 @@
 ﻿using UnityEditor;
-using UnityEngine;
 
 namespace Validatox.Editor.Validators.Fix
 {
+    /// <summary>
+    ///   Delete an object fix. Eligible to automatic fixing
+    /// </summary>
     public class DeleteFix : ValidationFix
     {
-        public DeleteFix(Validator validator, Object subject, params object[] args) : base(validator, subject, args)
+        public DeleteFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
+            ContextlessFix = true;
         }
 
-        public override void EditorRender(ValidationFixWindow window)
+        protected override bool Fix(SerializedObject serializedObject)
         {
-            if (GUILayout.Button("Delete"))
+            if (IsSceneObject)
             {
-                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(Subject));
-                Validator.MarkDirtyValidation();
-                window.Close();
+                UnityEngine.Object.DestroyImmediate(serializedObject.targetObject);
             }
+            else
+            {
+                AssetDatabase.DeleteAsset(AssetDatabase.GetAssetPath(serializedObject.targetObject));
+            }
+            return true;
         }
     }
 }

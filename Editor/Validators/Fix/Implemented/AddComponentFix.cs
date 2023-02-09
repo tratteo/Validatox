@@ -1,30 +1,28 @@
-﻿using UnityEngine;
+﻿using UnityEditor;
+using UnityEngine;
 
 namespace Validatox.Editor.Validators.Fix
 {
+    /// <summary>
+    ///   Add component fix. Eligible to automatic fixing
+    /// </summary>
+    /// <typeparam name="T"> </typeparam>
     public class AddComponentFix<T> : ValidationFix where T : Component
     {
-        private readonly GameObject gObj;
-
-        public AddComponentFix(Validator validator, UnityEngine.Object subject, params object[] args) : base(validator, subject, args)
+        public AddComponentFix(ValidationFailure failure, params object[] args) : base(failure, args)
         {
-            gObj = subject is GameObject ? subject as GameObject : null;
+            ContextlessFix = true;
         }
 
-        public override void EditorRender(ValidationFixWindow window)
+        protected override bool Fix(SerializedObject serializedObject)
         {
-            if (gObj == null)
+            var obj = serializedObject.targetObject;
+            if (obj is GameObject gObj)
             {
-                ErrorLabel("the subject is not a GameObject");
+                gObj.AddComponent<T>();
+                return true;
             }
-            else
-            {
-                if (GUILayout.Button($"Add {typeof(T)}"))
-                {
-                    gObj.AddComponent<T>();
-                    Apply();
-                }
-            }
+            return false;
         }
     }
 }
