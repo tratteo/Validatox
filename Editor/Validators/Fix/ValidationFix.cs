@@ -137,6 +137,7 @@ namespace Validatox.Editor.Validators.Fix
                 {
                     var success = Fix(serializedObject);
                     serializedObject.ApplyModifiedProperties();
+                    EditorUtility.SetDirty(serializedObject.targetObject);
                     if (success)
                     {
                         Failure.Validator.PerformSingleValidation(obj, Failure);
