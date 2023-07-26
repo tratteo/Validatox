@@ -186,7 +186,7 @@ namespace Validatox.Editor
                 HorizontalGroup(() =>
                 {
                     GUILayout.Label("State:", GUILayout.Width(40));
-                    content = hasResult ? result.Successful ? EditorGUIUtility.TrIconContent("winbtn_mac_max") : EditorGUIUtility.TrIconContent("winbtn_mac_close") : EditorGUIUtility.TrIconContent("winbtn_mac_min");
+                    content = hasResult ? result.Successful ? EditorGUIUtility.TrIconContent("d_greenLight") : EditorGUIUtility.TrIconContent("d_redLight") : EditorGUIUtility.TrIconContent("d_orangeLight");
                     GUILayout.Label(content, GUILayout.MaxWidth(20));
                     if (hasResult && !result.Successful)
                     {
